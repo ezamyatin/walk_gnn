@@ -11,7 +11,8 @@ from model import WalkGNN
 from utils import validate
 
 DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
-LIMIT = 100
+LIMIT = None
+
 
 def make_submission(model, device, path):
     with open(path, 'w') as out:
@@ -33,6 +34,7 @@ def make_submission(model, device, path):
 
 def make_submission_and_validate(model, device, path):
     make_submission(model, device, path)
+    print()
     print(validate(DATA_PREFIX + 'val_te_pr.csv', path, True))
 
 
