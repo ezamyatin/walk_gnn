@@ -77,7 +77,7 @@ class WalkGNN(LightningModule):
         y_score = pred.reshape(-1).cpu().detach().numpy()
         taken = set()
         recs = []
-        for i in y_score.argsort()[-(k * 2):]:
+        for i in y_score.argsort()[::-1][:2*k]:
             if len(recs) == k:
                 break
             item = min(i // n, i % n), max(i // n, i % n)
@@ -85,7 +85,7 @@ class WalkGNN(LightningModule):
                 continue
             recs.append(item)
             taken.add(item)
-        return recs[::-1]
+        return recs
 
     def training_step(self, batch, batch_idx):
         loss = 0
