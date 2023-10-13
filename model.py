@@ -89,7 +89,7 @@ class WalkGNN(LightningModule):
         loss = 0
         batch_size = batch[0].shape[0]
         for i in range(batch_size):
-            ego_f, f, edge_index, label = batch
+            ego_id, ego_f, f, edge_index, label = batch
             pred, mask = self.predict(ego_f[i], edge_index[i], f[i])
             n = pred.shape[0]
 

@@ -110,4 +110,4 @@ class EgoLabelDataset(IterableDataset):
         label_iter = LabelDataset(self.label_path, self.limit)
         for (ego_id1, ego_f, f, edge_index), (ego_id2, label) in zip(ego_iter, label_iter):
             assert ego_id1 == ego_id2
-            yield ego_f, f, edge_index, label
+            yield ego_id1, ego_f, f, edge_index, label
