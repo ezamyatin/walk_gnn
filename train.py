@@ -22,7 +22,7 @@ def make_submission(model, device, path):
             df = pd.read_csv(DATA_PREFIX + 'val_te_pr.csv')
             ego_ids = set(df[df['is_private']]['ego_id'])
             out.write('ego_id,u,v\n')
-            for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(DATA_PREFIX + 'ego_net_te.csv', LIMIT), total=len(ego_ids)):
+            for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(DATA_PREFIX + 'ego_net_te.csv', LIMIT), total=len(ego_ids) * 2):
                 if ego_id not in ego_ids: continue
                 ego_f = torch.Tensor(ego_f).to(device)
                 f = torch.Tensor(f).to(device)
