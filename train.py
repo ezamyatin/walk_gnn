@@ -11,7 +11,7 @@ from model import WalkGNN
 from utils import validate
 
 DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
-
+LIMIT = 1000
 
 def make_submission(model, device, path):
     with open(path, 'w') as out:
@@ -20,7 +20,7 @@ def make_submission(model, device, path):
             df = pd.read_csv(DATA_PREFIX + 'val_te_pr.csv')
             ego_ids = set(df[df['is_private']]['ego_id'])
             out.write('ego_id,u,v\n')
-            for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(DATA_PREFIX + 'ego_net_te.csv'), total=len(ego_ids)):
+            for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(DATA_PREFIX + 'ego_net_te.csv', LIMIT), total=len(ego_ids)):
                 if ego_id not in ego_ids: continue
                 ego_f = ego_f.to(device)
                 f = f.to(device)
@@ -63,7 +63,7 @@ def main():
     model = Trainer(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6)
     ego_net_path = DATA_PREFIX + 'ego_net_tr.csv'
     label_path = DATA_PREFIX + 'label.csv'
-    train_dataset = EgoLabelDataset(ego_net_path, label_path)
+    train_dataset = EgoLabelDataset(ego_net_path, label_path, LIMIT)
 
     train_loader = torch.utils.data.DataLoader(train_dataset, num_workers=0)
     trainer = pl.Trainer(max_epochs=100, devices=[3], accelerator='gpu', accumulate_grad_batches=10)
