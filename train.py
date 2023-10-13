@@ -70,7 +70,7 @@ def main():
         default_hp_metric=False,
     )
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, num_workers=0)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1)
     trainer = pl.Trainer(max_epochs=100, devices=[3], accelerator='gpu', accumulate_grad_batches=10, logger=[logger])
     trainer.fit(model=model, train_dataloaders=train_loader)
 
