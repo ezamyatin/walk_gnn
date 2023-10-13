@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
 import torch
-from torch.utils.data.dataset import IterableDataset
+from torch.utils.data.dataset import IterableDataset, Dataset
 from torch import nn
 import numpy as np
 import pandas as pd
@@ -111,3 +111,17 @@ class EgoLabelDataset(IterableDataset):
         for (ego_id1, ego_f, f, edge_index), (ego_id2, label) in zip(ego_iter, label_iter):
             assert ego_id1 == ego_id2
             yield ego_id1, ego_f, f, edge_index, label
+
+
+class InMemoryEgoLabelDataset(Dataset):
+    def __init__(self, ego_net_path, label_path, limit=None):
+        iter = EgoLabelDataset(ego_net_path, label_path, limit)
+        self.data = []
+        for ego_id, ego_f, f, edge_index, label in iter:
+            self.data.append((ego_id, ego_f, f, edge_index, label))
+
+    def __getitem__(self, index):
+        return self.data[index]
+
+    def __len__(self):
+        return len(self.data)
