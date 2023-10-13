@@ -40,9 +40,10 @@ def make_submission_and_validate(model, device, path):
 
 
 class Trainer(WalkGNN):
-    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
+    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, uuid):
         super().__init__(node_dim, edge_dim, hid_dim, num_blocks)
         self.loss_fn = nn.BCEWithLogitsLoss(reduction='none')
+        self.uuid = uuid
 
     def on_train_epoch_end(self):
         torch.save(self.state_dict(), DATA_PREFIX + 'models/wgnn_tiny_cut_{}_{}.torch'.format(self.uuid, self.current_epoch))
@@ -54,11 +55,11 @@ class Trainer(WalkGNN):
 
 
 def main():
-    model = Trainer(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6)
+    uuid = np.random.randint(1000000000)
+    model = Trainer(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, uuid=uuid)
     ego_net_path = DATA_PREFIX + 'ego_net_tr.csv'
     label_path = DATA_PREFIX + 'label.csv'
     train_dataset = EgoLabelDataset(ego_net_path, label_path, LIMIT)
-    uuid = np.random.randint(1000000000)
     print("UUID:", uuid)
 
     logger = TensorBoardLogger(
