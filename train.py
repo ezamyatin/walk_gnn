@@ -40,19 +40,11 @@ class Trainer(WalkGNN):
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
         super().__init__(node_dim, edge_dim, hid_dim, num_blocks)
         self.loss_fn = nn.BCEWithLogitsLoss(reduction='none')
+        self.uuid = np.random.randint(1000000000)
 
     def on_train_epoch_end(self):
-        torch.save(self.state_dict(), DATA_PREFIX + 'wgnn_tiny_cut_{}.torch'.format(self.current_epoch))
-        torch.onnx.export(self, (torch.rand((300, 8), device=torch.device(self.device)),
-                                       torch.randint(1, 300, (2, 9000), device=torch.device(self.device)),
-                                       torch.rand((9000, 4), device=torch.device(self.device))),
-                          DATA_PREFIX + 'wgnn_tiny_cut_{}.onnx'.format(self.current_epoch),
-                          export_params=True,
-                          do_constant_folding=True,
-                          dynamic_axes={'feat': {0: 'v_num'}, 'edge_index': {1: 'edge_num'},
-                                        'edge_attr': {0: 'edge_num'}, 'output': {0: 'v_num', 1: 'v_num'}},
-                          input_names=['feat', 'edge_index', 'edge_attr'], output_names=['output'], opset_version=13)
-        make_submission_and_validate(self, self.device, DATA_PREFIX + 'submission_wgnn_tiny_cut_{}.csv'.format(self.current_epoch))
+        torch.save(self.state_dict(), DATA_PREFIX + 'wgnn_tiny_cut_{}_{}.torch'.format(self.uuid, self.current_epoch))
+        make_submission_and_validate(self, self.device, DATA_PREFIX + 'submission_wgnn_tiny_cut_{}_{}.csv'.format(self.uuid, self.current_epoch))
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(list(self.parameters()), lr=0.0001)
