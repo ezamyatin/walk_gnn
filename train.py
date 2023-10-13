@@ -42,8 +42,8 @@ class Trainer(WalkGNN):
         self.loss_fn = nn.BCEWithLogitsLoss(reduction='none')
 
     def on_train_epoch_end(self):
-        torch.save(self.model.state_dict(), DATA_PREFIX + 'wgnn_tiny_cut_{}.torch'.format(self.current_epoch))
-        torch.onnx.export(self.model, (torch.rand((300, 8), device=torch.device(self.device)),
+        torch.save(self.state_dict(), DATA_PREFIX + 'wgnn_tiny_cut_{}.torch'.format(self.current_epoch))
+        torch.onnx.export(self, (torch.rand((300, 8), device=torch.device(self.device)),
                                        torch.randint(1, 300, (2, 9000), device=torch.device(self.device)),
                                        torch.rand((9000, 4), device=torch.device(self.device))),
                           DATA_PREFIX + 'wgnn_tiny_cut_{}.onnx'.format(self.current_epoch),
