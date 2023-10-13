@@ -47,12 +47,10 @@ class WalkGNN(LightningModule):
         self.blocks = nn.ModuleList([WalkConv(edge_dim, hid_dim) for _ in range(num_blocks)])
         self.node_fc = FC(node_dim, hid_dim * 2, hid_dim, 2)
         self.out_fc = FC(hid_dim, hid_dim * 2, 1, 2)
-        self.init_state = nn.Parameter(torch.zeros(self.hid_dim), True)
 
     def forward(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
         mtr = torch.zeros((n, n, self.hid_dim), device=torch.device(feat.device))
-        mtr[:, :] = self.init_state
         mtr[torch.arange(0, n), torch.arange(0, n)] = self.node_fc(feat)
 
         for block in self.blocks:
