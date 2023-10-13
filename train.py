@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 import torch
 from torch.utils.data.dataset import IterableDataset
+from pytorch_lightning.loggers import TensorBoardLogger
 from torch import nn
 import numpy as np
 import pandas as pd
@@ -42,7 +43,6 @@ class Trainer(WalkGNN):
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
         super().__init__(node_dim, edge_dim, hid_dim, num_blocks)
         self.loss_fn = nn.BCEWithLogitsLoss(reduction='none')
-        self.uuid = np.random.randint(1000000000)
 
     def on_train_epoch_end(self):
         torch.save(self.state_dict(), DATA_PREFIX + 'models/wgnn_tiny_cut_{}_{}.torch'.format(self.uuid, self.current_epoch))
@@ -58,9 +58,17 @@ def main():
     ego_net_path = DATA_PREFIX + 'ego_net_tr.csv'
     label_path = DATA_PREFIX + 'label.csv'
     train_dataset = EgoLabelDataset(ego_net_path, label_path, LIMIT)
+    uuid = np.random.randint(1000000000)
+    print("UUID:", uuid)
+
+    logger = TensorBoardLogger(
+        "/home/e.zamyatin/walk_gnn/tb_logs",
+        name="walk_gnn_{}".format(uuid),
+        default_hp_metric=False,
+    )
 
     train_loader = torch.utils.data.DataLoader(train_dataset, num_workers=0)
-    trainer = pl.Trainer(max_epochs=100, devices=[3], accelerator='gpu', accumulate_grad_batches=10)
+    trainer = pl.Trainer(max_epochs=100, devices=[3], accelerator='gpu', accumulate_grad_batches=10, logger=[logger])
     trainer.fit(model=model, train_dataloaders=train_loader)
 
 

@@ -98,5 +98,7 @@ class WalkGNN(LightningModule):
             for u, v in label[i]:
                 loss += (self.loss_fn(((pred[u, v].reshape((1)) - pred[u, mask[u]])), meta_y[mask[u]]) / len(label[i])).sum() / n
                 loss += (self.loss_fn(((pred[v, u].reshape((1)) - pred[v, mask[v]])), meta_y[mask[v]]) / len(label[i])).sum() / n
+
+        self.log("loss/train", loss, sync_dist=True, on_step=True, on_epoch=True)
         return loss
 
