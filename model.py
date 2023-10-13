@@ -85,7 +85,7 @@ class WalkGNN(LightningModule):
                 continue
             recs.append(item)
             taken.add(item)
-        return recs
+        return recs[::-1]
 
     def training_step(self, batch, batch_idx):
         loss = 0
