@@ -60,7 +60,7 @@ class EgoDataset(IterableDataset):
                 yield cur_ego_id, (node_attr[:was.sum()], np.array(cur_ego_net[0]).T, np.array(cur_ego_net[1]))
 
     def __iter__(self):
-        ego_iter = EgoDataset.read_ego_net(self.ego_net_path)
+        ego_iter = self.read_ego_net(self.ego_net_path)
         for ego_id, ego_net in ego_iter:
             ego_f = ego_net[0].astype("float32")
             f = ego_net[2].astype("float32")
@@ -93,7 +93,7 @@ class LabelDataset(IterableDataset):
                 yield cur_ego_id, np.array(cur_label)
 
     def __iter__(self):
-        label_iter = LabelDataset.read_label(self.label_path)
+        label_iter = self.read_label(self.label_path)
         for ego_id, label in label_iter:
             label = label.astype("int64")
             yield ego_id, label
