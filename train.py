@@ -38,7 +38,7 @@ def make_submission_and_validate(model, device, path):
     print()
     r = validate(DATA_PREFIX + 'val_te_pr.csv', path, True)
     print(r)
-    model.log("ndcg@5/validation", r, sync_dist=True, on_step=True, on_epoch=True)
+    model.log("ndcg@5/validation", r, sync_dist=True, on_epoch=True)
 
 
 class Trainer(WalkGNN):
