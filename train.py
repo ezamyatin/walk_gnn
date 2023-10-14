@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from dataset import EgoDataset, EgoLabelDataset, InMemoryEgoLabelDataset
-from model import WalkGNN
+from dataset import EgoDataset, InMemoryEgoLabelDataset
+from models.walk_gnn import WalkGNN
 from utils import validate
 
 DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'

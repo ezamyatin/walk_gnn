@@ -1,12 +1,5 @@
-import pytorch_lightning as pl
-import torch
 from torch.utils.data.dataset import IterableDataset, Dataset
-from torch import nn
 import numpy as np
-import pandas as pd
-import tqdm
-
-from model import WalkGNN
 
 DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
 
