@@ -23,7 +23,7 @@ class Trainer(WalkGNN):
         with torch.no_grad():
             metric = validate(self.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False)
             print(metric)
-            self.log("ndcg@5/validation", metric, sync_dist=True, on_epoch=True)
+            self.log("ndcg@{}/validation".format(NDCG_AT_K), metric, sync_dist=True, on_epoch=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(list(self.parameters()), lr=0.0001)
