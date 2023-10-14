@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from dataset import EgoDataset, EgoLabelDataset
+from dataset import EgoDataset, EgoLabelDataset, InMemoryEgoLabelDataset
 from model import WalkGNN
 from utils import validate
 
@@ -61,7 +61,7 @@ def main():
     model = Trainer(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, uuid=uuid)
     ego_net_path = DATA_PREFIX + 'ego_net_tr.csv'
     label_path = DATA_PREFIX + 'label.csv'
-    train_dataset = EgoLabelDataset(ego_net_path, label_path, LIMIT)
+    train_dataset = InMemoryEgoLabelDataset(ego_net_path, label_path, LIMIT)
     print("UUID:", uuid)
 
     logger = TensorBoardLogger(
@@ -70,8 +70,8 @@ def main():
         default_hp_metric=False,
     )
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1)
-    trainer = pl.Trainer(max_epochs=100, devices=[3], accelerator='gpu', accumulate_grad_batches=10, logger=[logger])
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
+    trainer = pl.Trainer(max_epochs=100, devices=[2], accelerator='gpu', accumulate_grad_batches=10, logger=[logger])
     trainer.fit(model=model, train_dataloaders=train_loader)
 
 
