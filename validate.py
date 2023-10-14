@@ -56,7 +56,7 @@ def validate(model, test_ego_path, test_label_path, k, private):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', choices=['aa', 'walk_gnn'])
+    parser.add_argument('--model', choices=['aa', 'walk_gnn', 'waa'])
     parser.add_argument('--state_dict_path', default=None)
     parser.add_argument('--device', default=None)
     args = parser.parse_args()
