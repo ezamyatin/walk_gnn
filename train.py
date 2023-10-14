@@ -9,30 +9,7 @@ import tqdm
 
 from dataset import EgoDataset, InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
 from models.walk_gnn import WalkGNN
-from utils import validate
-
-
-def make_submission(model, path, private=False):
-    with open(path, 'w') as out:
-        with torch.no_grad():
-            model.eval()
-            df = pd.read_csv(DATA_PREFIX + 'val_te_pr.csv')
-            ego_ids = set(df[df['is_private'] == private]['ego_id'])
-            out.write('ego_id,u,v\n')
-            for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(DATA_PREFIX + 'ego_net_te.csv', LIMIT), total=len(ego_ids) * 2):
-                if ego_id not in ego_ids: continue
-                recs = model.recommend(ego_f, edge_index, f, 5)
-                assert len(recs) == 5
-                for u, v in recs:
-                    out.write('{},{},{}\n'.format(ego_id, u, v))
-
-
-def make_submission_and_validate(model, path):
-    make_submission(model, path)
-    print()
-    r = validate(DATA_PREFIX + 'val_te_pr.csv', path, True)
-    print(r)
-    model.log("ndcg@5/validation", r, sync_dist=True, on_epoch=True)
+from validate import validate, NDCG_AT_K
 
 
 class Trainer(WalkGNN):
@@ -43,7 +20,10 @@ class Trainer(WalkGNN):
 
     def on_train_epoch_end(self):
         torch.save(self.state_dict(), DATA_PREFIX + 'models/wgnn_tiny_cut_{}_{}.torch'.format(self.uuid, self.current_epoch))
-        make_submission_and_validate(self, DATA_PREFIX + 'submissions/submission_wgnn_tiny_cut_{}_{}.csv'.format(self.uuid, self.current_epoch))
+        with torch.no_grad():
+            metric = validate(self.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False)
+            print(metric)
+            self.log("ndcg@5/validation", metric, sync_dist=True, on_epoch=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(list(self.parameters()), lr=0.0001)
