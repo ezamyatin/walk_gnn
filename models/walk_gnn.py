@@ -69,6 +69,10 @@ class WalkGNN(LightningModule):
         return pred, mask
 
     def recommend(self, feat, edge_index, edge_attr, k):
+        feat = torch.Tensor(feat).to(self.device)
+        edge_attr = torch.Tensor(edge_attr).to(self.device)
+        edge_index = torch.Tensor(edge_index).to(self.device).long()
+
         n = feat.shape[0]
         pred, mask = self.predict(feat, edge_index, edge_attr)
         pred[~mask.bool()] = -np.inf

@@ -15,7 +15,7 @@ DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
 LIMIT = None
 
 
-def make_submission(model, device, path):
+def make_submission(model, path):
     with open(path, 'w') as out:
         with torch.no_grad():
             model.eval()
@@ -24,17 +24,14 @@ def make_submission(model, device, path):
             out.write('ego_id,u,v\n')
             for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(DATA_PREFIX + 'ego_net_te.csv', LIMIT), total=len(ego_ids) * 2):
                 if ego_id not in ego_ids: continue
-                ego_f = torch.Tensor(ego_f).to(device)
-                f = torch.Tensor(f).to(device)
-                edge_index = torch.Tensor(edge_index).to(device).long()
                 recs = model.recommend(ego_f, edge_index, f, 5)
                 assert len(recs) == 5
                 for u, v in recs:
                     out.write('{},{},{}\n'.format(ego_id, u, v))
 
 
-def make_submission_and_validate(model, device, path):
-    make_submission(model, device, path)
+def make_submission_and_validate(model, path):
+    make_submission(model, path)
     print()
     r = validate(DATA_PREFIX + 'val_te_pr.csv', path, True)
     print(r)
@@ -49,7 +46,7 @@ class Trainer(WalkGNN):
 
     def on_train_epoch_end(self):
         torch.save(self.state_dict(), DATA_PREFIX + 'models/wgnn_tiny_cut_{}_{}.torch'.format(self.uuid, self.current_epoch))
-        make_submission_and_validate(self, self.device, DATA_PREFIX + 'submissions/submission_wgnn_tiny_cut_{}_{}.csv'.format(self.uuid, self.current_epoch))
+        make_submission_and_validate(self, DATA_PREFIX + 'submissions/submission_wgnn_tiny_cut_{}_{}.csv'.format(self.uuid, self.current_epoch))
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(list(self.parameters()), lr=0.0001)
