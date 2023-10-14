@@ -72,3 +72,5 @@ def main():
     print(metric)
 
 
+if __name__ == '__main__':
+    main()
