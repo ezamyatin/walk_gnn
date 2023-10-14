@@ -5,7 +5,7 @@ import tqdm
 from dataset import EgoDataset, DATA_PREFIX, LIMIT
 import argparse
 
-from models.heuristic import AdamicAdar
+from models.heuristic import AdamicAdar, WeightedAdamicAdar
 from models.walk_gnn import WalkGNN
 
 NDCG_AT_K = 5
@@ -68,6 +68,9 @@ def main():
             model.to(args.device)
     elif args.model == 'aa':
         model = AdamicAdar()
+    elif args.model == 'waa':
+        model = WeightedAdamicAdar()
+
     metric = validate(model, DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, True)
     print(metric)
 
