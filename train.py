@@ -7,20 +7,17 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from dataset import EgoDataset, InMemoryEgoLabelDataset
+from dataset import EgoDataset, InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
 from models.walk_gnn import WalkGNN
 from utils import validate
 
-DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
-LIMIT = None
 
-
-def make_submission(model, path):
+def make_submission(model, path, private=False):
     with open(path, 'w') as out:
         with torch.no_grad():
             model.eval()
             df = pd.read_csv(DATA_PREFIX + 'val_te_pr.csv')
-            ego_ids = set(df[df['is_private']]['ego_id'])
+            ego_ids = set(df[df['is_private'] == private]['ego_id'])
             out.write('ego_id,u,v\n')
             for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(DATA_PREFIX + 'ego_net_te.csv', LIMIT), total=len(ego_ids) * 2):
                 if ego_id not in ego_ids: continue

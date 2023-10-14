@@ -2,6 +2,7 @@ from torch.utils.data.dataset import IterableDataset, Dataset
 import numpy as np
 
 DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
+LIMIT = None
 
 
 class EgoDataset(IterableDataset):
