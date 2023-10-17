@@ -19,7 +19,7 @@ class Trainer(WalkGNN):
         self.uuid = uuid
 
     def on_train_epoch_end(self):
-        torch.save(self.state_dict(), DATA_PREFIX + 'models/wgnn_tiny_cut_{}_{}.torch'.format(self.uuid, self.current_epoch))
+        torch.save(self.state_dict(), DATA_PREFIX + 'models/walk_gnn_{}_{}.torch'.format(self.uuid, self.current_epoch))
         with torch.no_grad():
             metric = validate(self.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False)
             print(metric)
