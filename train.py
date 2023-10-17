@@ -26,8 +26,9 @@ class Trainer(WalkGNN):
             self.log("ndcg@{}/validation".format(NDCG_AT_K), metric, sync_dist=True, on_epoch=True)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(list(self.parameters()), lr=0.0001)
-        return optimizer
+        optimizer = torch.optim.AdamW(list(self.parameters()), lr=0.001)
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.9, verbose=True)
+        return [optimizer], [scheduler]
 
 
 def main():
