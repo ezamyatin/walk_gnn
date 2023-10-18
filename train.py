@@ -59,7 +59,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', choices=['walk_gnn'])
-    parser.add_argument('--device', choices=[None] + ['cuda:{}'.format(i) for i in range(4)])
+    parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
 
     if args.model == 'walk_gnn':
