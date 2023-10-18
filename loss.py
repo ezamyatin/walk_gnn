@@ -13,7 +13,7 @@ class PWLoss:
         batch_size = batch[0].shape[0]
         for i in range(batch_size):
             ego_id, feat, edge_attr, edge_index, label = batch
-            mask = get_mask(feat, edge_index, edge_attr)
+            mask = get_mask(feat[i], edge_index[i], edge_attr[i])
             pred = model.predict(feat[i], edge_index[i], edge_attr[i])
             n = pred.shape[0]
             mask[label[i][:, 0], label[i][:, 1]] = False
