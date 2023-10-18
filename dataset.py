@@ -1,8 +1,20 @@
 from torch.utils.data.dataset import IterableDataset, Dataset
 import numpy as np
+import torch
 
 DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
 LIMIT = None
+
+
+def get_mask(feat, edge_index, edge_attr):
+    n = feat.shape[0]
+    mask = torch.ones((n, n), device=torch.device(feat.device)).bool()
+    mask[edge_index[0], edge_index[1]] = False
+    mask[edge_index[1], edge_index[0]] = False
+    mask[0, :] = False
+    mask[:, 0] = False
+    mask[torch.arange(0, n), torch.arange(0, n)] = False
+    return mask
 
 
 class EgoDataset(IterableDataset):

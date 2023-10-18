@@ -40,7 +40,7 @@ class WalkConv(nn.Module):
         return mtr + self.fc(mtr1 + self.linear(mtr1.permute((1, 0, 2))))
 
 
-class WalkGNN(LightningModule):
+class WalkGNN(nn.Module):
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
         super().__init__()
         self.hid_dim = hid_dim
@@ -58,52 +58,5 @@ class WalkGNN(LightningModule):
         return self.out_fc(mtr).reshape((n, n))
 
     def predict(self, feat, edge_index, edge_attr):
-        n = feat.shape[0]
-        mask = torch.ones((n, n), device=torch.device(feat.device)).bool()
-        mask[edge_index[0], edge_index[1]] = False
-        mask[edge_index[1], edge_index[0]] = False
-        mask[0, :] = False
-        mask[:, 0] = False
-        mask[torch.arange(0, n), torch.arange(0, n)] = False
-        pred = self.forward(feat, edge_index, edge_attr).reshape((n, -1))
-        return pred, mask
-
-    def recommend(self, feat, edge_index, edge_attr, k):
-        feat = torch.Tensor(feat).to(self.device)
-        edge_attr = torch.Tensor(edge_attr).to(self.device)
-        edge_index = torch.Tensor(edge_index).to(self.device).long()
-
-        n = feat.shape[0]
-        pred, mask = self.predict(feat, edge_index, edge_attr)
-        pred[~mask.bool()] = -np.inf
-        y_score = pred.reshape(-1).cpu().detach().numpy()
-        taken = set()
-        recs = []
-        for i in y_score.argsort()[::-1][:2*k]:
-            if len(recs) == k:
-                break
-            item = min(i // n, i % n), max(i // n, i % n)
-            if item in taken:
-                continue
-            recs.append(item)
-            taken.add(item)
-        return recs
-
-    def training_step(self, batch, batch_idx):
-        loss = 0
-        batch_size = batch[0].shape[0]
-        for i in range(batch_size):
-            ego_id, ego_f, f, edge_index, label = batch
-            pred, mask = self.predict(ego_f[i], edge_index[i], f[i])
-            n = pred.shape[0]
-
-            mask[label[i][:, 0], label[i][:, 1]] = False
-            mask[label[i][:, 1], label[i][:, 0]] = False
-            meta_y = torch.ones(n, device=torch.device(ego_f.device))
-            for u, v in label[i]:
-                loss += (self.loss_fn(((pred[u, v].reshape((1)) - pred[u, mask[u]])), meta_y[mask[u]]) / len(label[i])).sum() / n
-                loss += (self.loss_fn(((pred[v, u].reshape((1)) - pred[v, mask[v]])), meta_y[mask[v]]) / len(label[i])).sum() / n
-
-        self.log("loss/train", loss, sync_dist=True, on_step=True, on_epoch=True)
-        return loss
+        return self.forward(feat, edge_index, edge_attr)
 

@@ -7,8 +7,10 @@ import argparse
 
 from models.heuristic import AdamicAdar, WeightedAdamicAdar
 from models.walk_gnn import WalkGNN
+from dataset import get_mask
 
 NDCG_AT_K = 5
+
 
 def ndcg_at_k(label_df, subm_df, k, private):
     if private:
@@ -31,8 +33,26 @@ def ndcg_at_k(label_df, subm_df, k, private):
     return result
 
 
-def validate(model, test_ego_path, test_label_path, k, private):
+def recommend(model, feat, edge_index, edge_attr, k):
+    n = feat.shape[0]
+    pred = model.forward(feat, edge_index, edge_attr)
+    mask = get_mask(feat, edge_index, edge_attr)
+    pred[~mask.bool()] = -np.inf
+    y_score = pred.reshape(-1).cpu().detach().numpy()
+    taken = set()
+    recs = []
+    for i in y_score.argsort()[::-1][:2*k]:
+        if len(recs) == k:
+            break
+        item = min(i // n, i % n), max(i // n, i % n)
+        if item in taken:
+            continue
+        recs.append(item)
+        taken.add(item)
+    return recs
 
+
+def validate(model, test_ego_path, test_label_path, k, private, device):
     label_df = pd.read_csv(test_label_path)
     ego_ids = set(label_df[label_df['is_private'] == private]['ego_id'])
 
@@ -42,15 +62,18 @@ def validate(model, test_ego_path, test_label_path, k, private):
         'v': [],
     }
 
-    for ego_id, ego_f, f, edge_index in tqdm.tqdm(EgoDataset(test_ego_path, LIMIT), total=len(ego_ids) * 2):
+    for ego_id, feat, edge_attr, edge_index in tqdm.tqdm(EgoDataset(test_ego_path, LIMIT), total=len(ego_ids) * 2):
         if ego_id not in ego_ids: continue
-        recs = model.recommend(ego_f, edge_index, f, k)
+        feat = torch.Tensor(feat, device=device)
+        edge_attr = torch.Tensor(edge_attr, device=device)
+        edge_index = torch.Tensor(edge_index, device=device)
+
+        recs = recommend(model, feat, edge_index, edge_attr, k)
         assert len(recs) == k
         for u, v in recs:
             out_df['ego_id'].append(ego_id)
             out_df['u'].append(u)
             out_df['v'].append(v)
-    print()
     return ndcg_at_k(label_df, pd.DataFrame.from_dict(out_df), k, private)
 
 
@@ -58,7 +81,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', choices=['aa', 'walk_gnn', 'waa'])
     parser.add_argument('--state_dict_path', default=None)
-    parser.add_argument('--device', default=None)
+    parser.add_argument('--device', choices=[None] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
     model = None
     if args.model == 'walk_gnn':
@@ -66,12 +89,15 @@ def main():
         model.load_state_dict(torch.load(args.state_dict_path))
         if args.device is not None:
             model.to(args.device)
+        model.eval()
     elif args.model == 'aa':
         model = AdamicAdar()
     elif args.model == 'waa':
         model = WeightedAdamicAdar()
 
-    metric = validate(model, DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, True)
+    with torch.no_grad():
+        metric = validate(model, DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, True,
+                          device=torch.device(args.device))
     print(metric)
 
 

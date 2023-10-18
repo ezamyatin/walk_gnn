@@ -1,5 +1,8 @@
+import argparse
+
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning import LightningModule
 from torch.utils.data.dataset import IterableDataset
 from pytorch_lightning.loggers import TensorBoardLogger
 from torch import nn
@@ -8,20 +11,32 @@ import pandas as pd
 import tqdm
 
 from dataset import EgoDataset, InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
+from loss import PWLoss
 from models.walk_gnn import WalkGNN
 from validate import validate, NDCG_AT_K
 
+TB_LOG_PATH = "/home/e.zamyatin/walk_gnn/tb_logs"
 
-class Trainer(WalkGNN):
-    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, uuid):
-        super().__init__(node_dim, edge_dim, hid_dim, num_blocks)
-        self.loss_fn = nn.BCEWithLogitsLoss(reduction='none')
+
+class LightningModel(LightningModule):
+    def __init__(self, model, loss_obj, uuid):
+        super().__init__()
+        self.model = model
         self.uuid = uuid
+        self.loss_obj = loss_obj
+
+    def model_name(self):
+        return self.model.__class__.__name__
+
+    def training_step(self, batch, batch_idx):
+        loss = self.loss_obj.compute_loss(self.model, batch, batch_idx)
+        self.log("loss/train", loss, sync_dist=True, on_step=True, on_epoch=True)
+        return loss
 
     def on_train_epoch_end(self):
-        torch.save(self.state_dict(), DATA_PREFIX + 'models/walk_gnn_{}_{}.torch'.format(self.uuid, self.current_epoch))
+        torch.save(self.state_dict(), DATA_PREFIX + 'models/{}_{}_{}.torch'.format(self.model_name(), self.uuid, self.current_epoch))
         with torch.no_grad():
-            metric = validate(self.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False)
+            metric = validate(self.model.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False, self.device)
             print(metric)
             self.log("ndcg@{}/validation".format(NDCG_AT_K), metric, sync_dist=True, on_epoch=True)
 
@@ -30,24 +45,39 @@ class Trainer(WalkGNN):
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.9, verbose=True)
         return [optimizer], [scheduler]
 
+    def get_logger(self):
+        return TensorBoardLogger(
+            TB_LOG_PATH,
+            name="{}_{}".format(self.model_name(), self.uuid),
+            default_hp_metric=False,
+        )
+
 
 def main():
     uuid = np.random.randint(1000000000)
-    model = Trainer(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, uuid=uuid)
+    print("UUID:", uuid)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', choices=['walk_gnn'])
+    parser.add_argument('--device', choices=[None] + ['cuda:{}'.format(i) for i in range(4)])
+    args = parser.parse_args()
+
+    if args.model == 'walk_gnn':
+        model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6)
+    else:
+        assert False
+
+    lit_model = LightningModel(model=model,
+                               loss_obj=PWLoss(),
+                               uuid=uuid)
+
     ego_net_path = DATA_PREFIX + 'ego_net_tr.csv'
     label_path = DATA_PREFIX + 'label.csv'
     train_dataset = InMemoryEgoLabelDataset(ego_net_path, label_path, LIMIT)
-    print("UUID:", uuid)
-
-    logger = TensorBoardLogger(
-        "/home/e.zamyatin/walk_gnn/tb_logs",
-        name="walk_gnn_{}".format(uuid),
-        default_hp_metric=False,
-    )
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
-    trainer = pl.Trainer(max_epochs=100, devices=[2], accelerator='gpu', accumulate_grad_batches=10, logger=[logger])
-    trainer.fit(model=model, train_dataloaders=train_loader)
+    trainer = pl.Trainer(max_epochs=100, devices=[int(args.device.split(":")[-1])], accelerator='gpu', accumulate_grad_batches=10, logger=[lit_model.get_logger()])
+    trainer.fit(model=lit_model, train_dataloaders=train_loader)
 
 
 if __name__ == '__main__':
