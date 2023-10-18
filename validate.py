@@ -35,7 +35,7 @@ def ndcg_at_k(label_df, subm_df, k, private):
 
 def recommend(model, feat, edge_index, edge_attr, k):
     n = feat.shape[0]
-    pred = model.forward(feat, edge_index, edge_attr)
+    pred = model.predict(feat, edge_index, edge_attr)
     mask = get_mask(feat, edge_index, edge_attr)
     pred[~mask.bool()] = -np.inf
     y_score = pred.reshape(-1).cpu().detach().numpy()
@@ -64,9 +64,9 @@ def validate(model, test_ego_path, test_label_path, k, private, device):
 
     for ego_id, feat, edge_attr, edge_index in tqdm.tqdm(EgoDataset(test_ego_path, LIMIT), total=len(ego_ids) * 2):
         if ego_id not in ego_ids: continue
-        feat = torch.Tensor(feat, device=device)
-        edge_attr = torch.Tensor(edge_attr, device=device)
-        edge_index = torch.Tensor(edge_index, device=device)
+        feat = torch.tensor(feat, device=device)
+        edge_attr = torch.tensor(edge_attr, device=device)
+        edge_index = torch.tensor(edge_index, device=device)
 
         recs = recommend(model, feat, edge_index, edge_attr, k)
         assert len(recs) == k
@@ -81,7 +81,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', choices=['aa', 'walk_gnn', 'waa'])
     parser.add_argument('--state_dict_path', default=None)
-    parser.add_argument('--device', choices=[None] + ['cuda:{}'.format(i) for i in range(4)])
+    parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
     model = None
     if args.model == 'walk_gnn':
