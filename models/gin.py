@@ -22,6 +22,6 @@ class GINE(BasicGNN):
 
     def predict(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
-        fw = self.forward(feat, edge_index, edge_attr=edge_attr).reshape((n, -1))
+        fw = self.forward(feat, edge_index, edge_attr=edge_attr).reshape((n, n))
         pred = torch.matmul(fw, fw.T)
         return pred
