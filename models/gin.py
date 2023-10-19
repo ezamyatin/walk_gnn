@@ -21,10 +21,25 @@ class GINEModel(BasicGNN):
         return GINEConv(mlp, **kwargs)
 
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
-        super().__init__(in_channels=node_dim, hidden_channels=hid_dim, num_layers=num_blocks, edge_dim=edge_dim)
+        super().__init__(in_channels=hid_dim, hidden_channels=hid_dim, num_layers=num_blocks, edge_dim=hid_dim)
+        self.in_node_mlp = MLP(
+            [node_dim, hid_dim * 2, hid_dim],
+            act='relu',
+            act_first=False,
+            norm=None,
+            norm_kwargs=None,
+        )
+
+        self.in_edge_mlp = MLP(
+            [edge_dim, hid_dim * 2, hid_dim],
+            act='relu',
+            act_first=False,
+            norm=None,
+            norm_kwargs=None,
+        )
 
     def predict(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
-        fw = self.forward(feat, edge_index, edge_attr=edge_attr).reshape((n, n))
+        fw = self.forward(self.in_node_mlp(feat), edge_index, edge_attr=self.in_edge_mlp(edge_attr)).reshape((n, -1))
         pred = torch.matmul(fw, fw.T)
         return pred

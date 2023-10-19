@@ -66,7 +66,7 @@ def main():
     if args.model == 'walk_gnn':
         model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6)
     elif args.model == 'gine':
-        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=64, num_blocks=6)
+        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6)
     else:
         assert False
 
