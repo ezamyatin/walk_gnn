@@ -12,6 +12,7 @@ import tqdm
 
 from dataset import EgoDataset, InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
 from loss import PWLoss
+from models.gin import GINEModel
 from models.walk_gnn import WalkGNN
 from validate import validate, NDCG_AT_K
 
@@ -58,12 +59,14 @@ def main():
     print("UUID:", uuid)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', choices=['walk_gnn'])
+    parser.add_argument('--model', choices=['walk_gnn', 'gine'])
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
 
     if args.model == 'walk_gnn':
         model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6)
+    elif args.model == 'gine':
+        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=64, num_blocks=6)
     else:
         assert False
 

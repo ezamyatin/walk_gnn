@@ -6,7 +6,7 @@ import numpy as np
 from torch_geometric.nn.models.basic_gnn import BasicGNN
 
 
-class GINE(BasicGNN):
+class GINEModel(BasicGNN):
     supports_edge_weight = False
     supports_edge_attr = True
 
@@ -19,6 +19,9 @@ class GINE(BasicGNN):
             norm_kwargs=None,
         )
         return GINEConv(mlp, **kwargs)
+
+    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
+        super().__init__(in_channels=node_dim, hidden_channels=hid_dim, num_layers=num_blocks, edge_dim=edge_dim)
 
     def predict(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
