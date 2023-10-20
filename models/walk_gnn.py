@@ -22,10 +22,10 @@ class FC(nn.Module):
 
 
 class WalkConv(nn.Module):
-    def __init__(self, edge_dim, hid_dim):
+    def __init__(self, edge_dim, hid_dim, mlp_layers):
         super().__init__()
-        self.edge_fc = FC(edge_dim, hid_dim * 4, hid_dim * hid_dim, 2)
-        self.fc = FC(hid_dim, hid_dim * 4, hid_dim, 2)
+        self.edge_fc = FC(edge_dim, hid_dim * 4, hid_dim * hid_dim, mlp_layers)
+        self.fc = FC(hid_dim, hid_dim * 4, hid_dim, mlp_layers)
         self.linear = nn.Linear(hid_dim, hid_dim)
 
     def forward(self, mtr, edge_index, edge_attr):
@@ -41,10 +41,10 @@ class WalkConv(nn.Module):
 
 
 class WalkGNN(nn.Module):
-    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
+    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, mlp_layers):
         super().__init__()
         self.hid_dim = hid_dim
-        self.blocks = nn.ModuleList([WalkConv(edge_dim, hid_dim) for _ in range(num_blocks)])
+        self.blocks = nn.ModuleList([WalkConv(edge_dim, hid_dim, mlp_layers) for _ in range(num_blocks)])
         self.node_fc = FC(node_dim, hid_dim * 2, hid_dim, 2)
         self.out_fc = FC(hid_dim, hid_dim * 2, 1, 2)
 
