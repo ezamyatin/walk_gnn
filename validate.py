@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 import pandas as pd
 import torch
@@ -86,7 +88,12 @@ def main():
     model = None
     if args.model == 'walk_gnn':
         model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6)
-        model.load_state_dict(torch.load(args.state_dict_path))
+        try:
+            model.load_state_dict(torch.load(args.state_dict_path))
+        except:
+            state_dict = torch.load(args.state_dict_path)
+            model.load_state_dict(OrderedDict(zip(map(lambda e: e[len('model.'):], state_dict.keys()), state_dict.values())))
+
         if args.device is not None:
             model.to(args.device)
         model.eval()
