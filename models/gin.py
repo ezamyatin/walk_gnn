@@ -22,6 +22,7 @@ class GINEModel(BasicGNN):
 
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
         super().__init__(in_channels=hid_dim, hidden_channels=hid_dim, num_layers=num_blocks, edge_dim=hid_dim)
+
         self.in_node_mlp = MLP(
             [node_dim, hid_dim * 2, hid_dim],
             act='relu',
@@ -38,6 +39,11 @@ class GINEModel(BasicGNN):
             norm_kwargs=None,
         )
 
+    def reset_parameters(self):
+        super().reset_parameters()
+        self.in_node_mlp.reset_parameters()
+        self.in_edge_mlp.reset_parameters()
+
     def forward(self, x, edge_index, *args, **kwargs):
         x = self.in_node_mlp(x)
         kwargs['edge_attr'] = self.in_edge_mlp(kwargs['edge_attr'])
@@ -46,5 +52,5 @@ class GINEModel(BasicGNN):
     def predict(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
         fw = self.forward(feat, edge_index, edge_attr=edge_attr).reshape((n, -1))
-        pred = torch.matmul(fw, fw.T)
+        pred = torch.matmul(fw, fw.T) / fw.shape[1]
         return pred
