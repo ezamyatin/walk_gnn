@@ -6,6 +6,15 @@ import numpy as np
 from torch_geometric.nn.models.basic_gnn import BasicGNN
 
 
+class SimpleNormLayer(torch.nn.Module):
+    def __init__(self, denom):
+        super().__init__()
+        self.denom = denom
+
+    def forward(self, x):
+        return x / self.denom
+
+
 class GINEModel(BasicGNN):
     supports_edge_weight = False
     supports_edge_attr = True
@@ -15,19 +24,22 @@ class GINEModel(BasicGNN):
             [in_channels, out_channels, out_channels],
             act='relu',
             act_first=False,
-            norm=None,
+            norm=SimpleNormLayer(self.hid_dim),
             norm_kwargs=None,
         )
         return GINEConv(mlp, **kwargs)
 
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks):
-        super().__init__(in_channels=hid_dim, hidden_channels=hid_dim, num_layers=num_blocks, edge_dim=hid_dim)
+        self.hid_dim = hid_dim
+        super().__init__(in_channels=hid_dim, hidden_channels=hid_dim,
+                         num_layers=num_blocks, edge_dim=hid_dim,
+                         norm=SimpleNormLayer(hid_dim))
 
         self.in_node_mlp = MLP(
             [node_dim, hid_dim * 2, hid_dim],
             act='relu',
             act_first=False,
-            norm=None,
+            norm=SimpleNormLayer(hid_dim),
             norm_kwargs=None,
         )
 
@@ -35,7 +47,7 @@ class GINEModel(BasicGNN):
             [edge_dim, hid_dim * 2, hid_dim],
             act='relu',
             act_first=False,
-            norm=None,
+            norm=SimpleNormLayer(hid_dim),
             norm_kwargs=None,
         )
 
@@ -52,5 +64,5 @@ class GINEModel(BasicGNN):
     def predict(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
         fw = self.forward(feat, edge_index, edge_attr=edge_attr).reshape((n, -1))
-        pred = torch.matmul(fw, fw.T) / fw.shape[1]
+        pred = torch.matmul(fw, fw.T)
         return pred
