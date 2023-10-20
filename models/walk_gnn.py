@@ -24,7 +24,12 @@ class FC(nn.Module):
 class WalkConv(nn.Module):
     def __init__(self, edge_dim, hid_dim, mlp_layers):
         super().__init__()
-        self.edge_fc = FC(edge_dim, hid_dim * 4, hid_dim * hid_dim, mlp_layers)
+        if edge_dim is not None:
+            self.ignore_edge_attr = False
+            self.edge_fc = FC(edge_dim, hid_dim * 4, hid_dim * hid_dim, mlp_layers)
+        else:
+            self.ignore_edge_attr = True
+            self.edge_fc = nn.Linear(hid_dim, hid_dim, bias=False)
         self.fc = FC(hid_dim, hid_dim * 4, hid_dim, mlp_layers)
         self.linear = nn.Linear(hid_dim, hid_dim)
 
@@ -33,8 +38,13 @@ class WalkConv(nn.Module):
         hid_dim = mtr.shape[2]
 
         fmtr = torch.zeros((n, n, hid_dim, hid_dim), device=torch.device(mtr.device))
-        fmtr[edge_index[0], edge_index[1]] = self.edge_fc(edge_attr).reshape((-1, hid_dim, hid_dim))
-        mtr1 = torch.einsum('ijc,jkct->ikt', mtr, fmtr)
+        if not self.ignore_edge_attr:
+            fmtr[edge_index[0], edge_index[1]] = self.edge_fc(edge_attr).reshape((-1, hid_dim, hid_dim))
+            mtr1 = torch.einsum('ijc,jkct->ikt', mtr, fmtr)
+        else:
+            fmtr[edge_index[0], edge_index[1]] = self.edge_fc.weight
+            mtr1 = torch.einsum('ijc,jkct->ikt', mtr, fmtr)
+
         mtr1[torch.arange(0, n), torch.arange(0, n), :] *= 0
         mtr1 /= hid_dim
         return mtr + self.fc(mtr1 + self.linear(mtr1.permute((1, 0, 2))))
