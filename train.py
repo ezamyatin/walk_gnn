@@ -68,6 +68,10 @@ def main():
         model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
     elif args.model == 'walk_gnn_no_edge_attr':
         model = WalkGNN(node_dim=8, edge_dim=None, hid_dim=8, num_blocks=6, mlp_layers=2)
+    elif args.model == 'walk_gnn_no_node_attr':
+        model = WalkGNN(node_dim=None, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
+    elif args.model == 'walk_gnn_attr':
+        model = WalkGNN(node_dim=None, edge_dim=None, hid_dim=8, num_blocks=6, mlp_layers=2)
     elif args.model == 'gine':
         model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6)
     elif args.model == 'gine_ohe':

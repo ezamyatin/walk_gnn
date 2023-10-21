@@ -55,13 +55,20 @@ class WalkGNN(nn.Module):
         super().__init__()
         self.hid_dim = hid_dim
         self.blocks = nn.ModuleList([WalkConv(edge_dim, hid_dim, mlp_layers) for _ in range(num_blocks)])
-        self.node_fc = FC(node_dim, hid_dim * 2, hid_dim, 2)
+        if node_dim is not None:
+            self.node_fc = FC(node_dim, hid_dim * 2, hid_dim, 2)
+        else:
+            self.ignore_node_attr = True
+            self.node_fc = torch.nn.Parameter(torch.ones(hid_dim, dtype=torch.float32))
         self.out_fc = FC(hid_dim, hid_dim * 2, 1, 2)
 
     def forward(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
         mtr = torch.zeros((n, n, self.hid_dim), device=torch.device(feat.device))
-        mtr[torch.arange(0, n), torch.arange(0, n)] = self.node_fc(feat)
+        if not self.ignore_node_attr:
+            mtr[torch.arange(0, n), torch.arange(0, n)] = self.node_fc(feat)
+        else:
+            mtr[torch.arange(0, n), torch.arange(0, n)] = self.node_fc
 
         for block in self.blocks:
             mtr = block(mtr, edge_index, edge_attr)
