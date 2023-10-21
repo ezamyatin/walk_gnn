@@ -60,7 +60,7 @@ def main():
     print("UUID:", uuid)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', choices=['walk_gnn', 'gine', 'gat', 'gine_ohe', 'walk_gnn_no_edge_attr', 'walk_gnn_attr', 'walk_gnn_no_node_attr'])
+    parser.add_argument('--model', choices=['walk_gnn', 'gine', 'gat', 'gine_ohe', 'walk_gnn_no_edge_attr', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr'])
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
 
@@ -70,7 +70,7 @@ def main():
         model = WalkGNN(node_dim=8, edge_dim=None, hid_dim=8, num_blocks=6, mlp_layers=2)
     elif args.model == 'walk_gnn_no_node_attr':
         model = WalkGNN(node_dim=None, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
-    elif args.model == 'walk_gnn_attr':
+    elif args.model == 'walk_gnn_no_attr':
         model = WalkGNN(node_dim=None, edge_dim=None, hid_dim=8, num_blocks=6, mlp_layers=2)
     elif args.model == 'gine':
         model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6)
