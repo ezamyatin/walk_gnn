@@ -13,7 +13,7 @@ import tqdm
 from dataset import EgoDataset, InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
 from loss import PWLoss
 from models.gat import GATModel
-from models.gin import GINEModel
+from models.gin import GINEModel, GINModel
 from models.walk_gnn import WalkGNN
 from validate import validate, NDCG_AT_K
 
@@ -60,7 +60,7 @@ def main():
     print("UUID:", uuid)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', choices=['walk_gnn', 'gine', 'gat', 'gine_ohe', 'walk_gnn_no_edge_attr', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr'])
+    parser.add_argument('--model', choices=['walk_gnn', 'gine', 'gat', 'gine_ohe', 'walk_gnn_no_edge_attr', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr', 'gin_ohe'])
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
 
@@ -75,8 +75,9 @@ def main():
     elif args.model == 'gine':
         model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6)
     elif args.model == 'gine_ohe':
-        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6,
-                          use_degree_ohe=True, max_nodes=300)
+        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6, use_degree_ohe=True, max_nodes=300)
+    elif args.model == 'gin_ohe':
+        model = GINModel(hid_dim=256, num_blocks=6, use_degree_ohe=True, max_nodes=300)
     elif args.model == 'gat':
         model = GATModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6)
     else:
