@@ -88,16 +88,20 @@ class GINModel(GIN):
     def __init__(self, hid_dim, num_blocks, use_degree_ohe=False, max_nodes=None):
         assert not use_degree_ohe or max_nodes is not None
 
+        self.use_degree_ohe = use_degree_ohe
         self.max_nodes = max_nodes
         self.hid_dim = hid_dim
-        super().__init__(in_channels=max_nodes, hidden_channels=hid_dim,
+        super().__init__(in_channels=max_nodes if use_degree_ohe else 1, hidden_channels=hid_dim,
                          num_layers=num_blocks, norm=SimpleNormLayer(hid_dim))
 
     def forward(self, x, edge_index, *args, **kwargs):
-        d = degree(edge_index[0], self.max_nodes, dtype=torch.int32)
-        one_hot = torch.zeros((x.shape[0], self.max_nodes), device=x.device)
-        one_hot[torch.arange(x.shape[0]), d[:x.shape[0]]] = 1
-        return super().forward(one_hot, edge_index, *args, **kwargs)
+        if self.use_degree_ohe:
+            d = degree(edge_index[0], self.max_nodes, dtype=torch.int32)
+            one_hot = torch.zeros((x.shape[0], self.max_nodes), device=x.device)
+            one_hot[torch.arange(x.shape[0]), d[:x.shape[0]]] = 1
+            return super().forward(one_hot, edge_index, *args, **kwargs)
+        else:
+            return super().forward(torch.ones((x.shape, 1), dtype=x.dtype, device=x.device), edge_index, *args, **kwargs)
 
     def predict(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
