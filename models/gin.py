@@ -101,7 +101,7 @@ class GINModel(GIN):
             one_hot[torch.arange(x.shape[0]), d[:x.shape[0]]] = 1
             return super().forward(one_hot, edge_index, *args, **kwargs)
         else:
-            return super().forward(torch.ones((x.shape, 1), dtype=x.dtype, device=x.device), edge_index, *args, **kwargs)
+            return super().forward(torch.ones((x.shape[0], 1), dtype=x.dtype, device=x.device), edge_index, *args, **kwargs)
 
     def predict(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
