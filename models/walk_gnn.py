@@ -56,6 +56,7 @@ class WalkGNN(nn.Module):
         self.hid_dim = hid_dim
         self.blocks = nn.ModuleList([WalkConv(edge_dim, hid_dim, mlp_layers) for _ in range(num_blocks)])
         if node_dim is not None:
+            self.ignore_node_attr = False
             self.node_fc = FC(node_dim, hid_dim * 2, hid_dim, 2)
         else:
             self.ignore_node_attr = True
