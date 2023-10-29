@@ -1,5 +1,5 @@
 from pytorch_lightning import LightningModule
-from torch_geometric.nn import GINEConv
+from torch_geometric.nn import GINEConv, GINConv
 from torch_geometric.nn.models import MLP
 import torch
 import numpy as np
@@ -16,6 +16,22 @@ class SimpleNormLayer(torch.nn.Module):
         return x / self.denom
 
 
+class rGINConv(GINConv):
+
+    def forward(self, x, edge_index, size = None):
+        rnd = torch.randint(0, 100, (x.shape[0], 1), dtype=torch.float32, device=x.device) / 100
+        x = torch.cat((x, rnd), dim=1)
+        return super().forward(x, edge_index, size)
+
+
+class rGINEConv(GINEConv):
+
+    def forward(self, x, edge_index, edge_attr, size=None):
+        rnd = torch.randint(0, 100, (x.shape[0], 1), dtype=torch.float32, device=x.device) / 100
+        x = torch.cat((x, rnd), dim=1)
+        return super().forward(x, edge_index, size)
+
+
 class GINEModel(BasicGNN):
     supports_edge_weight = False
     supports_edge_attr = True
@@ -28,11 +44,15 @@ class GINEModel(BasicGNN):
             norm=SimpleNormLayer(self.hid_dim),
             norm_kwargs=None,
         )
-        return GINEConv(mlp, **kwargs)
+        if not self.r_version:
+            return GINEConv(mlp, **kwargs)
+        else:
+            return rGINEConv(mlp, **kwargs)
 
-    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, use_degree_ohe=False, max_nodes=None):
+    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, use_degree_ohe=False, max_nodes=None, r_version=False):
         assert not use_degree_ohe or max_nodes is not None
 
+        self.r_version = r_version
         self.max_nodes = max_nodes
         self.hid_dim = hid_dim
         super().__init__(in_channels=hid_dim, hidden_channels=hid_dim,
