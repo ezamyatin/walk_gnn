@@ -58,6 +58,8 @@ def main():
     parser.add_argument('--model', choices=['walk_gnn', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr', 'walk_gnn_no_edge_attr',
                                             'gine', 'gine_ohe', 'gin_ohe', 'gin_constant', 'rgine'])
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
+    parser.add_argument('--state_dict_path', default=None)
+
     args = parser.parse_args()
 
     model = get_model(args)

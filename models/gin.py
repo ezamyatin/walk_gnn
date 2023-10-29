@@ -29,7 +29,7 @@ class rGINEConv(GINEConv):
     def forward(self, x, edge_index, edge_attr, size=None):
         rnd = torch.randint(0, 100, (x.shape[0], 1), dtype=torch.float32, device=x.device) / 100
         x = torch.cat((x, rnd), dim=1)
-        return super().forward(x, edge_index, size)
+        return super().forward(x, edge_index, edge_attr, size)
 
 
 class GINEModel(BasicGNN):
@@ -38,7 +38,7 @@ class GINEModel(BasicGNN):
 
     def init_conv(self, in_channels, out_channels, **kwargs):
         mlp = MLP(
-            [in_channels, out_channels, out_channels],
+            [in_channels if not self.r_version else in_channels + 1, out_channels, out_channels],
             act='relu',
             act_first=False,
             norm=SimpleNormLayer(self.hid_dim),
