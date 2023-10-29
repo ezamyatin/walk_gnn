@@ -80,7 +80,8 @@ def validate(model, test_ego_path, test_label_path, k, private, device):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', choices=['aa', 'walk_gnn', 'waa'])
+    parser.add_argument('--model', choices=['aa', 'waa', 'walk_gnn', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr', 'walk_gnn_no_edge_attr',
+                                            'gine', 'gine_ohe', 'gin_ohe', 'gin_constant'])
     parser.add_argument('--state_dict_path', default=None)
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
