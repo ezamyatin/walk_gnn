@@ -31,8 +31,9 @@ def ndcg_at_k(label_df, subm_df, k, private):
     df['dcg'] = 0
     df.loc[~df['rank'].isna(), 'dcg'] = 1 / np.log2(df['rank'] + 1)
     grouped_df = df.groupby('ego_id').sum()
-    result = (grouped_df['dcg'] / grouped_df['idcg']).mean()
-    return result
+    mean = (grouped_df['dcg'] / grouped_df['idcg']).mean()
+    std = (grouped_df['dcg'] / grouped_df['idcg']).std()
+    return mean, 1.96 * std / len(grouped_df) ** 0.5
 
 
 def recommend(model, feat, edge_index, edge_attr, k):
@@ -103,9 +104,9 @@ def main():
         model = WeightedAdamicAdar()
 
     with torch.no_grad():
-        metric = validate(model, DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, True,
+        metric, confidence = validate(model, DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, True,
                           device=torch.device(args.device))
-    print(metric)
+    print('{} +/- {}'.format(np.round(metric, 4), np.round(confidence, 4)))
 
 
 if __name__ == '__main__':

@@ -38,7 +38,7 @@ class LightningModel(LightningModule):
     def on_train_epoch_end(self):
         torch.save(self.state_dict(), DATA_PREFIX + 'models/{}_{}_{}.torch'.format(self.model_name(), self.uuid, self.current_epoch))
         with torch.no_grad():
-            metric = validate(self.model.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False, self.device)
+            metric, confidence = validate(self.model.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False, self.device)
             print(metric)
             self.log("ndcg@{}/validation".format(NDCG_AT_K), metric, sync_dist=True, on_epoch=True)
 
