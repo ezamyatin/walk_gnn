@@ -1,15 +1,13 @@
-from collections import OrderedDict
+import argparse
 
 import numpy as np
 import pandas as pd
 import torch
 import tqdm
-from dataset import EgoDataset, DATA_PREFIX, LIMIT
-import argparse
 
-from models.heuristic import AdamicAdar, WeightedAdamicAdar
-from models.walk_gnn import WalkGNN
+from dataset import EgoDataset, DATA_PREFIX, LIMIT
 from dataset import get_mask
+from models import get_model
 
 NDCG_AT_K = 5
 
@@ -86,22 +84,8 @@ def main():
     parser.add_argument('--state_dict_path', default=None)
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
-    model = None
-    if args.model == 'walk_gnn':
-        model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
-        try:
-            model.load_state_dict(torch.load(args.state_dict_path))
-        except:
-            state_dict = torch.load(args.state_dict_path)
-            model.load_state_dict(OrderedDict(zip(map(lambda e: e[len('model.'):], state_dict.keys()), state_dict.values())))
-
-        if args.device is not None:
-            model.to(args.device)
-        model.eval()
-    elif args.model == 'aa':
-        model = AdamicAdar()
-    elif args.model == 'waa':
-        model = WeightedAdamicAdar()
+    model = get_model(args)
+    model.eval()
 
     with torch.no_grad():
         metric, confidence = validate(model, DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, True,

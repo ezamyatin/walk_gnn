@@ -1,20 +1,15 @@
 import argparse
 
+import numpy as np
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning import LightningModule
-from torch.utils.data.dataset import IterableDataset
 from pytorch_lightning.loggers import TensorBoardLogger
-from torch import nn
-import numpy as np
-import pandas as pd
-import tqdm
+from torch.utils.data.dataset import IterableDataset
 
-from dataset import EgoDataset, InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
+from dataset import InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
 from loss import PWLoss
-from models.gat import GATModel
-from models.gin import GINEModel, GINModel
-from models.walk_gnn import WalkGNN
+from models import get_model
 from validate import validate, NDCG_AT_K
 
 TB_LOG_PATH = "/home/e.zamyatin/walk_gnn/tb_logs"
@@ -65,26 +60,7 @@ def main():
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
 
-    if args.model == 'walk_gnn':
-        model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
-    elif args.model == 'walk_gnn_no_edge_attr':
-        model = WalkGNN(node_dim=8, edge_dim=None, hid_dim=8, num_blocks=6, mlp_layers=2)
-    elif args.model == 'walk_gnn_no_node_attr':
-        model = WalkGNN(node_dim=None, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
-    elif args.model == 'walk_gnn_no_attr':
-        model = WalkGNN(node_dim=None, edge_dim=None, hid_dim=8, num_blocks=6, mlp_layers=2)
-    elif args.model == 'gine':
-        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6)
-    elif args.model == 'gine_ohe':
-        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6, use_degree_ohe=True, max_nodes=300)
-    elif args.model == 'gin_ohe':
-        model = GINModel(hid_dim=256, num_blocks=6, use_degree_ohe=True, max_nodes=300)
-    elif args.model == 'gin_constant':
-        model = GINModel(hid_dim=256, num_blocks=6, use_degree_ohe=False)
-    elif args.model == 'gat':
-        model = GATModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6)
-    else:
-        assert False
+    model = get_model(args)
 
     lit_model = LightningModel(model=model,
                                loss_obj=PWLoss(),
