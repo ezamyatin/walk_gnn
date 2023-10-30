@@ -49,16 +49,20 @@ class GINEModel(BasicGNN):
         else:
             return rGINEConv(mlp, **kwargs)
 
-    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, use_degree_ohe=False, max_nodes=None, r_version=False):
+    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, use_degree_ohe=False, max_nodes=None, r_version=False, use_id_ohe=False):
         assert not use_degree_ohe or max_nodes is not None
+        assert not use_id_ohe or max_nodes is not None
+        assert not use_degree_ohe or not use_id_ohe
 
         self.r_version = r_version
         self.max_nodes = max_nodes
+        self.use_degree_ohe = use_degree_ohe
+        self.use_id_ohe = use_id_ohe
         self.hid_dim = hid_dim
         super().__init__(in_channels=hid_dim, hidden_channels=hid_dim,
                          num_layers=num_blocks, edge_dim=hid_dim,
                          norm=SimpleNormLayer(hid_dim))
-        if use_degree_ohe:
+        if use_degree_ohe or use_id_ohe:
             self.in_node_mlp = MLP(
                 [node_dim + max_nodes, hid_dim * 2, hid_dim],
                 act='relu',
@@ -89,10 +93,15 @@ class GINEModel(BasicGNN):
         self.in_edge_mlp.reset_parameters()
 
     def forward(self, x, edge_index, *args, **kwargs):
-        if self.max_nodes is not None:
+        if self.use_degree_ohe is not None:
             d = degree(edge_index[0], self.max_nodes, dtype=torch.int32)
             one_hot = torch.zeros((x.shape[0], self.max_nodes), device=x.device)
             one_hot[torch.arange(x.shape[0]), d[:x.shape[0]]] = 1
+            x = self.in_node_mlp(torch.cat([x, one_hot], dim=1))
+        elif self.use_id_ohe:
+            ids = torch.randperm(self.max_nodes, dtype=torch.int32, device=x.device)
+            one_hot = torch.zeros((x.shape[0], self.max_nodes), device=x.device)
+            one_hot[torch.arange(x.shape[0]), ids[:x.shape[0]]] = 1
             x = self.in_node_mlp(torch.cat([x, one_hot], dim=1))
         else:
             x = self.in_node_mlp(x)

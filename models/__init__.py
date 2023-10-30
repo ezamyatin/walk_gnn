@@ -23,6 +23,8 @@ def get_model(args):
         model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6, r_version=True)
     elif args.model == 'gine_ohe':
         model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6, use_degree_ohe=True, max_nodes=300)
+    elif args.model == 'gine_id_ohe':
+        model = GINEModel(node_dim=8, edge_dim=4, hid_dim=256, num_blocks=6, use_id_ohe=True, max_nodes=300)
     elif args.model == 'gin_ohe':
         model = GINModel(hid_dim=256, num_blocks=6, use_degree_ohe=True, max_nodes=300)
     elif args.model == 'gin_constant':
