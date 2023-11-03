@@ -36,6 +36,7 @@ class MlpBlock(nn.Module):
         super().__init__()
         self.activation = activation_fn
         self.convs = nn.ModuleList()
+        self.out_features = out_features
         for i in range(depth_of_mlp):
             self.convs.append(nn.Conv2d(in_features, out_features, kernel_size=1, padding=0, bias=True))
             _init_weights(self.convs[-1])
@@ -45,6 +46,7 @@ class MlpBlock(nn.Module):
         out = inputs
         for conv_layer in self.convs:
             out = self.activation(conv_layer(out))
+            out /= self.out_features
 
         return out
 
