@@ -108,6 +108,7 @@ class PPGN_V1(nn.Module):
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, mlp_layers):
         super().__init__()
         self.edge_dim = edge_dim
+        self.node_dim = node_dim
         last_layer_features = edge_dim
         self.reg_blocks = nn.ModuleList()
         for _ in range(num_blocks):
@@ -123,9 +124,15 @@ class PPGN_V1(nn.Module):
         self.out_mlp = nn.Sequential(*out_layers)
 
     def forward(self, feat, edge_index, edge_attr):
-        x = torch.zeros((feat.shape[0], feat.shape[0], self.edge_dim), device=feat.device, dtype=torch.float32)
-        x[edge_index[0], edge_index[1]] = edge_attr
-        x = x.permute((2, 0, 1)).unsqueeze(0)
+        n = feat.shape[0]
+
+        fmtr = torch.zeros((n, n, self.edge_dim), device=feat.device, dtype=torch.float32)
+        fmtr[edge_index[0], edge_index[1]] = edge_attr
+
+        nmtr = torch.zeros((n, n, self.node_dim), device=feat.device, dtype=torch.float32)
+        nmtr[torch.arange(n), torch.arange(n)] = feat
+
+        x = torch.cat((fmtr, nmtr), dim=-1).permute((2, 0, 1)).unsqueeze(0)
         for i, block in enumerate(self.reg_blocks):
             x = block(x)
         return self.out_mlp(x[0].permute((1, 2, 0))).reshape((feat.shape[0], feat.shape[0]))
