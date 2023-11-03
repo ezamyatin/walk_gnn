@@ -62,6 +62,7 @@ class SkipConnection(nn.Module):
     """
     def __init__(self, in_features, out_features):
         super().__init__()
+        self.out_features = out_features
         self.conv = nn.Conv2d(in_features, out_features, kernel_size=1, padding=0, bias=True)
         _init_weights(self.conv)
 
@@ -70,6 +71,7 @@ class SkipConnection(nn.Module):
         # in2: N x d2 x m x m
         out = torch.cat((in1, in2), dim=1)
         out = self.conv(out)
+        out /= self.out_features
         return out
 
 
