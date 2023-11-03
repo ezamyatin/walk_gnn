@@ -1,3 +1,5 @@
+# code taken from https://github.com/GraphPKU/I2GNN/blob/master/count_models.py#L460
+
 import torch.nn as nn
 from torch_geometric.utils import dropout_adj, to_dense_adj, to_dense_batch, degree
 import torch
@@ -105,11 +107,10 @@ def _init_weights(layer):
 
 class PPGN(torch.nn.Module):
     # Provably powerful graph networks
-    def __init__(self, emb_dim=64, use_embedding=False, use_spd=False, y_ndim=1,
+    def __init__(self, emb_dim=64, use_spd=False, y_ndim=1,
                  **kwargs):
         super(PPGN, self).__init__()
 
-        self.use_embedding = use_embedding
         self.use_spd = use_spd
         self.y_ndim = y_ndim
 
