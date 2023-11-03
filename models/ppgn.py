@@ -28,7 +28,7 @@ class RegularBlock(nn.Module):
         mlp2 = self.mlp2(inputs)
 
         mult = torch.matmul(mlp1, mlp2)
-        mult /= self.out_features
+        mult = mult / self.out_features
         out = self.skip(in1=inputs, in2=mult)
         return out
 
@@ -51,7 +51,7 @@ class MlpBlock(nn.Module):
         out = inputs
         for conv_layer in self.convs:
             out = self.activation(conv_layer(out))
-            out /= self.out_features
+            out = out / self.out_features
 
         return out
 
@@ -76,7 +76,7 @@ class SkipConnection(nn.Module):
         # in2: N x d2 x m x m
         out = torch.cat((in1, in2), dim=1)
         out = self.conv(out)
-        out /= self.out_features
+        out = out / self.out_features
         return out
 
 
