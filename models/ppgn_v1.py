@@ -131,7 +131,7 @@ class PPGN_V1(nn.Module):
     def forward(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
         if self.ignore_attr:
-            x = torch.zeros((n, n, 1), device=feat.device, dtype=torch.float32).unsqueeze(0)
+            x = torch.zeros((n, n, 1), device=feat.device, dtype=torch.float32)
             x[edge_index[0], edge_index[1]] = 1
             x = x.permute((2, 0, 1)).unsqueeze(0)
         else:
