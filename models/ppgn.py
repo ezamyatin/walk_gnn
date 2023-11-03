@@ -28,7 +28,7 @@ class RegularBlock(nn.Module):
         mlp2 = self.mlp2(inputs)
 
         mult = torch.matmul(mlp1, mlp2)
-        mult = mult / self.out_features
+        #mult = mult / self.out_features
         out = self.skip(in1=inputs, in2=mult)
         return out
 
@@ -51,7 +51,7 @@ class MlpBlock(nn.Module):
         out = inputs
         for conv_layer in self.convs:
             out = self.activation(conv_layer(out))
-            out = out / self.out_features
+            #out = out / self.out_features
 
         return out
 
@@ -137,7 +137,7 @@ class PPGN(torch.nn.Module):
             [emb_dim, emb_dim, 1],
             act='relu',
             act_first=False,
-            norm=None,#SimpleNormLayer(emb_dim),
+            norm=SimpleNormLayer(emb_dim),
             norm_kwargs=None
         )
 
