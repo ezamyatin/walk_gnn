@@ -18,8 +18,8 @@ class RegularBlock(nn.Module):
         super().__init__()
 
         self.out_features = out_features
-        self.mlp1 = MlpBlock(in_features, out_features, depth_of_mlp + 1)
-        self.mlp2 = MlpBlock(in_features, out_features, depth_of_mlp + 1)
+        self.mlp1 = MlpBlock(in_features, out_features, depth_of_mlp)
+        self.mlp2 = MlpBlock(in_features, out_features, depth_of_mlp)
 
         self.skip = SkipConnection(in_features+out_features, out_features)
 
@@ -76,7 +76,7 @@ class SkipConnection(nn.Module):
         # in2: N x d2 x m x m
         out = torch.cat((in1, in2), dim=1)
         out = self.conv(out)
-        out = out / self.out_features
+        #out = out / self.out_features
         return out
 
 
@@ -137,7 +137,7 @@ class PPGN(torch.nn.Module):
             [emb_dim, emb_dim, 1],
             act='relu',
             act_first=False,
-            norm=SimpleNormLayer(emb_dim),
+            norm=None,#SimpleNormLayer(emb_dim),
             norm_kwargs=None
         )
 
