@@ -109,7 +109,7 @@ class PPGN_V1(nn.Module):
         super().__init__()
         self.edge_dim = edge_dim
         self.node_dim = node_dim
-        last_layer_features = edge_dim
+        last_layer_features = edge_dim + node_dim
         self.reg_blocks = nn.ModuleList()
         for _ in range(num_blocks):
             mlp_block = RegularBlock(mlp_layers, last_layer_features, hid_dim)
