@@ -12,6 +12,7 @@ class RegularBlock(nn.Module):
     def __init__(self, depth_of_mlp, in_features, out_features):
         super().__init__()
 
+        self.out_features = out_features
         self.mlp1 = MlpBlock(in_features, out_features, depth_of_mlp + 1)
         self.mlp2 = MlpBlock(in_features, out_features, depth_of_mlp + 1)
 
@@ -22,7 +23,7 @@ class RegularBlock(nn.Module):
         mlp2 = self.mlp2(inputs)
 
         mult = torch.matmul(mlp1, mlp2)
-
+        mult /= self.out_features
         out = self.skip(in1=inputs, in2=mult)
         return out
 
