@@ -41,6 +41,8 @@ def get_model(args):
         model = PPGNModel(hid_dim=32)
     elif args.model == 'ppgn_v1':
         model = PPGN_V1(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
+    elif args.model == 'ppgn_v1_no_attr':
+        model = PPGN_V1(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2, ignore_attr=True)
     else:
         assert False
 

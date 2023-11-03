@@ -105,11 +105,16 @@ def _init_weights(layer):
 
 
 class PPGN_V1(nn.Module):
-    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, mlp_layers):
+    def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, mlp_layers, ignore_attr=False):
         super().__init__()
         self.edge_dim = edge_dim
         self.node_dim = node_dim
-        last_layer_features = edge_dim + node_dim
+        self.ignore_attr = ignore_attr
+        if ignore_attr:
+            last_layer_features = 1
+        else:
+            last_layer_features = edge_dim + node_dim
+
         self.reg_blocks = nn.ModuleList()
         for _ in range(num_blocks):
             mlp_block = RegularBlock(mlp_layers, last_layer_features, hid_dim)
@@ -125,14 +130,17 @@ class PPGN_V1(nn.Module):
 
     def forward(self, feat, edge_index, edge_attr):
         n = feat.shape[0]
+        if self.ignore_attr:
+            x =  torch.ones((1, n, n), device=feat.device, dtype=torch.float32).unsqueeze(0)
+        else:
+            fmtr = torch.zeros((n, n, self.edge_dim), device=feat.device, dtype=torch.float32)
+            fmtr[edge_index[0], edge_index[1]] = edge_attr
 
-        fmtr = torch.zeros((n, n, self.edge_dim), device=feat.device, dtype=torch.float32)
-        fmtr[edge_index[0], edge_index[1]] = edge_attr
+            nmtr = torch.zeros((n, n, self.node_dim), device=feat.device, dtype=torch.float32)
+            nmtr[torch.arange(n), torch.arange(n)] = feat
 
-        nmtr = torch.zeros((n, n, self.node_dim), device=feat.device, dtype=torch.float32)
-        nmtr[torch.arange(n), torch.arange(n)] = feat
+            x = torch.cat((fmtr, nmtr), dim=-1).permute((2, 0, 1)).unsqueeze(0)
 
-        x = torch.cat((fmtr, nmtr), dim=-1).permute((2, 0, 1)).unsqueeze(0)
         for i, block in enumerate(self.reg_blocks):
             x = block(x)
         return self.out_mlp(x[0].permute((1, 2, 0))).reshape((feat.shape[0], feat.shape[0]))
