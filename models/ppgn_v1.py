@@ -26,7 +26,7 @@ class RegularBlock(nn.Module):
         mlp2 = self.mlp2(inputs)
 
         mult = torch.matmul(mlp1, mlp2)
-        #mult /= self.out_features
+        mult /= self.out_features
         out = self.skip(in1=inputs, in2=mult)
         return out
 
