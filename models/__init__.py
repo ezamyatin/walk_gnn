@@ -37,9 +37,9 @@ def get_model(args):
     elif args.model == 'waa':
         model = WeightedAdamicAdar()
     elif args.model == 'ppgn':
-        model = PPGN(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=4, mlp_layers=2)
+        model = PPGN(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=6, mlp_layers=3)
     elif args.model == 'ppgn_no_attr':
-        model = PPGN(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=4, mlp_layers=2, ignore_attr=True)
+        model = PPGN(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=6, mlp_layers=3, ignore_attr=True)
     else:
         assert False
 
