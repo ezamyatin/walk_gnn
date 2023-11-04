@@ -5,7 +5,7 @@ import torch
 from models.gat import GATModel
 from models.gin import GINEModel, GINModel
 from models.heuristic import AdamicAdar, WeightedAdamicAdar
-from models.ppgn import PPGNModel
+from models.ppgn import PPGNModel, PPGN
 from models.ppgn_v1 import PPGN_V1
 from models.walk_gnn import WalkGNN
 
@@ -38,11 +38,9 @@ def get_model(args):
     elif args.model == 'waa':
         model = WeightedAdamicAdar()
     elif args.model == 'ppgn':
-        model = PPGNModel(hid_dim=32)
-    elif args.model == 'ppgn_v1':
-        model = PPGN_V1(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=4, mlp_layers=2)
-    elif args.model == 'ppgn_v1_no_attr':
-        model = PPGN_V1(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=4, mlp_layers=2, ignore_attr=True)
+        model = PPGN(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=4, mlp_layers=2)
+    elif args.model == 'ppgn_no_attr':
+        model = PPGN(node_dim=8, edge_dim=4, hid_dim=32, num_blocks=4, mlp_layers=2, ignore_attr=True)
     else:
         assert False
 

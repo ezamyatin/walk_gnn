@@ -107,7 +107,7 @@ def _init_weights(layer):
         nn.init.zeros_(layer.bias)
 
 
-class PPGN_V1(nn.Module):
+class PPGN(nn.Module):
     def __init__(self, node_dim, edge_dim, hid_dim, num_blocks, mlp_layers, ignore_attr=False):
         super().__init__()
         self.edge_dim = edge_dim
