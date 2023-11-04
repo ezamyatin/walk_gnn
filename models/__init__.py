@@ -5,8 +5,7 @@ import torch
 from models.gat import GATModel
 from models.gin import GINEModel, GINModel
 from models.heuristic import AdamicAdar, WeightedAdamicAdar
-from models.ppgn import PPGNModel, PPGN
-from models.ppgn_v1 import PPGN_V1
+from models.ppgn import PPGN
 from models.walk_gnn import WalkGNN
 
 
