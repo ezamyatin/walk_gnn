@@ -57,7 +57,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', choices=['walk_gnn', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr', 'walk_gnn_no_edge_attr',
                                             'gine', 'gine_ohe', 'gin_ohe', 'gin_constant', 'rgine', 'gine_id_ohe',
-                                            'ppgn', 'ppgn_no_attr'])
+                                            'ppgn', 'ppgn_no_attr', 'walk_gnn_2b', 'walk_gnn_4b'])
 
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     parser.add_argument('--state_dict_path', default=None)
