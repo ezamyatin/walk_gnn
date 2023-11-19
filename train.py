@@ -12,7 +12,7 @@ from loss import PWLoss
 from models import get_model
 from validate import validate, NDCG_AT_K
 
-TB_LOG_PATH = "/home/e.zamyatin/walk_gnn/tb_logs"
+TB_LOG_PATH = "./tb_logs"
 
 
 class LightningModel(LightningModule):

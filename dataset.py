@@ -2,7 +2,7 @@ from torch.utils.data.dataset import IterableDataset, Dataset
 import numpy as np
 import torch
 
-DATA_PREFIX = '/home/e.zamyatin/walk_gnn/data/'
+DATA_PREFIX = './data/'
 LIMIT = None
 
 
