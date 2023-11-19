@@ -3,10 +3,10 @@ This is the official codebase of the paper
 
 **GNN Applied to Ego-nets for Friend Suggestions**
 
-**Evgeny Zamyatin**
+Evgeny Zamyatin
 
 ## Dataset ##
-The **EgoVK** dataset is avalilable at the [link](https://cloud.mail.ru/public/sifM/Ar2mzHaKk).
+The **EgoVK** dataset is avalilable at the [here](https://cloud.mail.ru/public/sifM/Ar2mzHaKk).
 
 
 ## Reproduction ##
