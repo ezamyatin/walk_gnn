@@ -6,7 +6,7 @@ This is the official codebase of the paper
 Evgeny Zamyatin
 
 ## Dataset ##
-The **EgoVK** dataset is avalilable at the [here](https://cloud.mail.ru/public/sifM/Ar2mzHaKk).
+The **EgoVK** dataset is avalilable [here](https://cloud.mail.ru/public/sifM/Ar2mzHaKk).
 
 
 ## Reproduction ##
