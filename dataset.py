@@ -1,6 +1,7 @@
 from torch.utils.data.dataset import IterableDataset, Dataset
 import numpy as np
 import torch
+import os
 
 DATA_PREFIX = './data/'
 LIMIT = None
@@ -128,6 +129,78 @@ class InMemoryEgoLabelDataset(Dataset):
 
     def __getitem__(self, index):
         return self.data[index]
+
+    def __len__(self):
+        return len(self.data)
+
+
+class YeastDataset(Dataset):
+    def __init__(self, yeast_path):
+        graph_id2label = []
+        node_id2label = []
+        node_id2graph_id = []
+        edge_path = os.path.join(yeast_path, 'Yeast_A.txt')
+        node_label_path = os.path.join(yeast_path, 'Yeast_node_labels.txt')
+        edge_label_path = os.path.join(yeast_path, 'Yeast_edge_labels.txt')
+        graph_indicator_path = os.path.join(yeast_path, 'Yeast_graph_indicator.txt')
+        graph_label_path = os.path.join(yeast_path, 'Yeast_graph_labels.txt')
+
+        with open(graph_label_path, 'r') as file:
+            for line in file:
+                graph_id2label.append(int(line))
+
+        with open(node_label_path, 'r') as file:
+            for line in file:
+                node_id2label.append(int(line))
+
+        with open(graph_indicator_path, 'r') as file:
+            for line in file:
+                node_id2graph_id.append(int(line) - 1)
+
+        graph_id2n = [0] * len(graph_id2label)
+        node_id2i = [-1] * len(node_id2label)
+        data = [(i, [], [], []) for i in range(len(graph_id2label))]
+
+        with open(edge_path, 'r') as file1:
+            with open(edge_label_path, 'r') as file2:
+                for line1, line2 in zip(file1, file2):
+                    a, b = list(map(int, line1.split(", ")))
+                    a -= 1
+                    b -= 1
+                    f = int(line2)
+
+                    assert node_id2graph_id[a] == node_id2graph_id[b]
+                    graph_id = node_id2graph_id[a]
+
+                    if node_id2i[a] == -1:
+                        node_id2i[a] = graph_id2n[graph_id]
+                        data[graph_id][1].append(node_id2label[a])
+                        graph_id2n[graph_id] += 1
+
+                    if node_id2i[b] == -1:
+                        node_id2i[b] = graph_id2n[graph_id]
+                        data[graph_id][1].append(node_id2label[b])
+                        graph_id2n[graph_id] += 1
+                    data[graph_id][2].append(f)
+                    data[graph_id][3].append([node_id2i[a], node_id2i[b]])
+
+        self.data = data
+
+    def __getitem__(self, index):
+        graph_id, f, edge_f, edge_index = self.data[index]
+        f_oh = np.zeros((len(f), 74), dtype=np.float32)
+        f_oh[np.arange(len(f)), f] = 1
+
+        edge_f_oh = np.zeros((len(edge_f), 3), dtype=np.float32)
+        edge_f_oh[np.arange(len(edge_f)), edge_f] = 1
+
+        edge_index = np.array(edge_index, dtype=np.int64)
+
+        label_i = np.random.randint(0, len(edge_index))
+        label = np.array([np.min(edge_index[label_i]), np.max(edge_index[label_i])])
+        idx = ((np.array(edge_index) != label).sum(axis=1) != 0) & ((np.array(edge_index) != label[::-1]).sum(axis=1) != 0)
+
+        return graph_id, f_oh, edge_f_oh[idx], edge_index[idx], [label]
 
     def __len__(self):
         return len(self.data)
