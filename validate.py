@@ -78,7 +78,7 @@ def validate(model, test_ego_path, test_label_path, k, private, device):
     return ndcg_at_k(label_df, pd.DataFrame.from_dict(out_df), k, private)
 
 
-def ndcg_(feat, edge_attr, edge_index, label, model, k):
+def ndcg_(model, feat, edge_attr, edge_index, label, k):
     recs = recommend(model, feat, edge_index, edge_attr, k)
     assert len(recs) == k
     dcg = 0
