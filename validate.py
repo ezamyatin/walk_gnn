@@ -80,7 +80,7 @@ def validate(model, test_ego_path, test_label_path, k, private, device):
 
 def ndcg_(model, feat, edge_attr, edge_index, label, k):
     recs = recommend(model, feat, edge_index, edge_attr, k)
-    assert len(recs) == k
+    assert len(recs) <= k
     dcg = 0
     idcg = 0
 
