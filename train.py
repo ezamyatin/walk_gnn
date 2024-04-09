@@ -64,7 +64,7 @@ def main():
 
     args = parser.parse_args()
 
-    model = get_model(args)
+    model = get_model(args, 8, 4)
 
     lit_model = LightningModel(model=model,
                                loss_obj=PWLoss(),

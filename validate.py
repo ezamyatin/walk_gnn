@@ -100,7 +100,7 @@ def main():
     parser.add_argument('--state_dict_path', default=None)
     parser.add_argument('--device', choices=['cpu'] + ['cuda:{}'.format(i) for i in range(4)])
     args = parser.parse_args()
-    model = get_model(args)
+    model = get_model(args, 8, 4)
     model.eval()
 
     with torch.no_grad():
