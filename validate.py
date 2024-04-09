@@ -85,7 +85,7 @@ def ndcg_(model, feat, edge_attr, edge_index, label, k):
     idcg = 0
 
     for i, rec in enumerate(recs):
-        if rec in label:
+        if ((rec[0] == label[:, 0]) & (rec[1] == label[:, 1])).any():
             dcg += 1/np.log2(i+2)
         if i < len(label):
             idcg += 1/np.log2(i+2)
