@@ -10,6 +10,7 @@ from torch.utils.data.dataset import IterableDataset
 from dataset import InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT, YeastDataset
 from loss import PWLoss
 from models import get_model
+from validate import validate_from_dataset, NDCG_AT_K, ndcg_
 
 TB_LOG_PATH = "./tb_logs"
 
@@ -29,12 +30,14 @@ class LightningModel(LightningModule):
         self.log("loss/train", loss, sync_dist=True, on_step=True, on_epoch=True)
         return loss
 
-    #def on_train_epoch_end(self):
-    #    torch.save(self.state_dict(), DATA_PREFIX + 'models/{}_{}_{}.torch'.format(self.model_name(), self.uuid, self.current_epoch))
-    #    with torch.no_grad():
-    #        metric, confidence = validate(self.model.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False, self.device)
-    #        print(metric)
-    #        self.log("ndcg@{}/validation".format(NDCG_AT_K), metric, sync_dist=True, on_epoch=True)
+    def on_train_epoch_end(self):
+        torch.save(self.state_dict(), DATA_PREFIX + 'models/yeast_{}_{}_{}.torch'.format(self.model_name(), self.uuid, self.current_epoch))
+
+    def validation_step(self, batch, batch_idx):
+        with torch.no_grad():
+            ego_id, feat, edge_attr, edge_index, label = batch
+            metric = ndcg_(self.model.eval(), feat[0], edge_attr[0], edge_index[0], label[0], NDCG_AT_K)
+            self.log("ndcg@{}/validation".format(NDCG_AT_K), metric, sync_dist=True, on_epoch=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(list(self.parameters()), lr=0.001)
@@ -71,10 +74,14 @@ def main():
                                loss_obj=PWLoss(),
                                uuid=uuid)
 
-    train_dataset = YeastDataset(args.yeast_path)
+    train_dataset = YeastDataset(args.yeast_path, True)
+    val_dataset = YeastDataset(args.yeast_path, False)
+
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=1)
+
     trainer = pl.Trainer(max_epochs=100, devices=[int(args.device.split(":")[-1])], accelerator='gpu', accumulate_grad_batches=10, logger=[lit_model.get_logger()])
-    trainer.fit(model=lit_model, train_dataloaders=train_loader)
+    trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
 
 if __name__ == '__main__':

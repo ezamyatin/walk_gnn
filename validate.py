@@ -78,6 +78,20 @@ def validate(model, test_ego_path, test_label_path, k, private, device):
     return ndcg_at_k(label_df, pd.DataFrame.from_dict(out_df), k, private)
 
 
+def ndcg_(feat, edge_attr, edge_index, label, model, k):
+    recs = recommend(model, feat, edge_index, edge_attr, k)
+    assert len(recs) == k
+    dcg = 0
+    idcg = 0
+
+    for i, rec in enumerate(recs):
+        if rec in label:
+            dcg += 1/np.log2(i+2)
+        if i < len(label):
+            idcg += 1/np.log2(i+2)
+    return dcg/idcg
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', choices=['aa', 'waa', 'walk_gnn', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr', 'walk_gnn_no_edge_attr',

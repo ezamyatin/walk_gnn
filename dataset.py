@@ -135,7 +135,7 @@ class InMemoryEgoLabelDataset(Dataset):
 
 
 class YeastDataset(Dataset):
-    def __init__(self, yeast_path):
+    def __init__(self, yeast_path, train):
         graph_id2label = []
         node_id2label = []
         node_id2graph_id = []
@@ -171,6 +171,12 @@ class YeastDataset(Dataset):
 
                     assert node_id2graph_id[a] == node_id2graph_id[b]
                     graph_id = node_id2graph_id[a]
+
+                    if train and graph_id % 100 >= 80:
+                        continue
+
+                    if not train and graph_id % 100 < 80:
+                        continue
 
                     if node_id2i[a] == -1:
                         node_id2i[a] = graph_id2n[graph_id]
