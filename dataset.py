@@ -184,7 +184,7 @@ class YeastDataset(Dataset):
                     data[graph_id][2].append(f)
                     data[graph_id][3].append([node_id2i[a], node_id2i[b]])
 
-        self.data = data
+        self.data = [x for x in data if len(x[1]) > 0 and len(x[2]) > 0 and len(x[3]) > 0]
 
     def __getitem__(self, index):
         graph_id, f, edge_f, edge_index = self.data[index]
@@ -200,7 +200,7 @@ class YeastDataset(Dataset):
         label = np.array([np.min(edge_index[label_i]), np.max(edge_index[label_i])])
         idx = ((np.array(edge_index) != label).sum(axis=1) != 0) & ((np.array(edge_index) != label[::-1]).sum(axis=1) != 0)
 
-        return graph_id, f_oh, edge_f_oh[idx], edge_index[idx], [label]
+        return graph_id, f_oh, edge_f_oh[idx], edge_index[idx].T, [label]
 
     def __len__(self):
         return len(self.data)

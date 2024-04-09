@@ -11,7 +11,7 @@ from models.walk_gnn import WalkGNN
 
 def get_model(args):
     if args.model == 'walk_gnn':
-        model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=6, mlp_layers=2)
+        model = WalkGNN(node_dim=74, edge_dim=3, hid_dim=8, num_blocks=6, mlp_layers=2)
     elif args.model == 'walk_gnn_2b':
         model = WalkGNN(node_dim=8, edge_dim=4, hid_dim=8, num_blocks=2, mlp_layers=2)
     elif args.model == 'walk_gnn_4b':
