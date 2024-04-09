@@ -10,7 +10,7 @@ from torch.utils.data.dataset import IterableDataset
 from dataset import InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT, YeastDataset
 from loss import PWLoss
 from models import get_model
-from validate import validate_from_dataset, NDCG_AT_K, ndcg_
+from validate import NDCG_AT_K, ndcg_
 
 TB_LOG_PATH = "./tb_logs"
 
