@@ -16,6 +16,9 @@ class AdamicAdar:
         aa = torch.matmul(mtr / (1 + torch.log(1 + out_degree)), mtr.T)
         return aa
 
+    def to(self, device):
+        pass
+
     def eval(self):
         pass
 

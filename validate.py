@@ -95,6 +95,7 @@ def ndcg_(model, feat, edge_attr, edge_index, label, k):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', choices=['ego-vk', 'yeast'])
+    parser.add_argument('--dataset_path')
     parser.add_argument('--model', choices=['aa', 'waa', 'walk_gnn', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr', 'walk_gnn_no_edge_attr',
                                             'gine', 'gine_ohe', 'gin_ohe', 'gin_constant', 'ppgn', 'ppgn_no_attr',
                                             'walk_gnn_2b', 'walk_gnn_4b', 'walk_gnn_8b'])
@@ -113,13 +114,14 @@ def main():
         if args.task == 'ego-vk':
             metric, confidence = validate(model, DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, True, device=torch.device(args.device))
         elif args.task == 'yeast':
-            dataset = YeastDataset(args.yeast_path, False)
+            dataset = YeastDataset(args.dataset_path, False)
 
             ndcgs = []
             for _, feat, edge_attr, edge_index, label in tqdm.tqdm(dataset, total=len(dataset)):
                 feat = torch.tensor(feat, device=torch.device(args.device))
                 edge_attr = torch.tensor(edge_attr, device=torch.device(args.device))
                 edge_index = torch.tensor(edge_index, device=torch.device(args.device))
+                label = torch.tensor(label, device=torch.device(args.device))
                 ndcgs.append(ndcg_(model, feat, edge_attr, edge_index, label, NDCG_AT_K))
 
             metric, confidence = np.mean(ndcgs), 1.96 * np.std(ndcgs) / len(ndcgs) ** 0.5
