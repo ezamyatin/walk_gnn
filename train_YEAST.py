@@ -80,7 +80,12 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=1)
 
-    trainer = pl.Trainer(max_epochs=100, devices=[int(args.device.split(":")[-1])], accelerator='gpu', accumulate_grad_batches=10, logger=[lit_model.get_logger()])
+    trainer = pl.Trainer(max_epochs=100,
+                         devices=[int(args.device.split(":")[-1])],
+                         gradient_clip_val=1,
+                         accelerator='gpu',
+                         accumulate_grad_batches=10,
+                         logger=[lit_model.get_logger()])
     trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
 
