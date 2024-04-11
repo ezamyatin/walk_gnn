@@ -194,13 +194,13 @@ class YeastDataset(Dataset):
 
     def __getitem__(self, index):
         graph_id, f, edge_f, edge_index = self.data[index]
-        f_oh = np.zeros((len(f), 74), dtype=np.float32)
-        f_oh[np.arange(len(f)), f] = 1
+        f_oh = np.zeros((len(f) + 1, 74), dtype=np.float32)
+        f_oh[np.arange(len(f)) + 1, f] = 1
 
         edge_f_oh = np.zeros((len(edge_f), 3), dtype=np.float32)
         edge_f_oh[np.arange(len(edge_f)), edge_f] = 1
 
-        edge_index = np.array(edge_index, dtype=np.int64)
+        edge_index = np.array(edge_index, dtype=np.int64) + 1
 
         label_i = np.random.randint(0, len(edge_index))
         label = np.array([np.min(edge_index[label_i]), np.max(edge_index[label_i])])
