@@ -92,6 +92,19 @@ def ndcg_(model, feat, edge_attr, edge_index, label, k):
     return dcg/idcg
 
 
+def auc_(model, feat, edge_attr, edge_index, label):
+    n = len(feat)
+    recs = recommend(model, feat, edge_index, edge_attr, n * (n-1) // 2)
+
+    targets = np.zeros(len(recs))
+
+    for i, rec in enumerate(recs):
+        if ((rec[0] == label[:, 0]) & (rec[1] == label[:, 1])).any():
+            targets[i] = 1
+    from sklearn.metrics import roc_auc_score
+    return roc_auc_score(targets, np.arange(len(targets))[::-1])
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', choices=['ego-vk', 'yeast'])
