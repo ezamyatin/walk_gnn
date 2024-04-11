@@ -193,6 +193,7 @@ class YeastDataset(Dataset):
         self.data = [x for x in data if len(x[1]) > 0 and len(x[2]) > 0 and len(x[3]) > 0]
 
     def __getitem__(self, index):
+        # zero node is empty
         graph_id, f, edge_f, edge_index = self.data[index]
         f_oh = np.zeros((len(f) + 1, 74), dtype=np.float32)
         f_oh[np.arange(len(f)) + 1, f] = 1
