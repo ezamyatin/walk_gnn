@@ -7,10 +7,10 @@ from pytorch_lightning import LightningModule
 from pytorch_lightning.loggers import TensorBoardLogger
 from torch.utils.data.dataset import IterableDataset
 
-from dataset import InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT
+from dataset import InMemoryEgoLabelDataset, DATA_PREFIX, LIMIT, YeastDataset
 from loss import PWLoss
 from models import get_model
-from validate import validate, NDCG_AT_K
+from validate import NDCG_AT_K, ndcg_
 
 TB_LOG_PATH = "./tb_logs"
 
@@ -31,10 +31,12 @@ class LightningModel(LightningModule):
         return loss
 
     def on_train_epoch_end(self):
-        torch.save(self.state_dict(), DATA_PREFIX + 'models/{}_{}_{}.torch'.format(self.model_name(), self.uuid, self.current_epoch))
+        torch.save(self.state_dict(), DATA_PREFIX + 'models/yeast_{}_{}_{}.torch'.format(self.model_name(), self.uuid, self.current_epoch))
+
+    def validation_step(self, batch, batch_idx):
         with torch.no_grad():
-            metric, confidence = validate(self.model.eval(), DATA_PREFIX + "ego_net_te.csv", DATA_PREFIX + "val_te_pr.csv", NDCG_AT_K, False, self.device)
-            print(metric)
+            ego_id, feat, edge_attr, edge_index, label = batch
+            metric = ndcg_(self.model.eval(), feat[0], edge_attr[0], edge_index[0], label[0], NDCG_AT_K)
             self.log("ndcg@{}/validation".format(NDCG_AT_K), metric, sync_dist=True, on_epoch=True)
 
     def configure_optimizers(self):
@@ -45,7 +47,7 @@ class LightningModel(LightningModule):
     def get_logger(self):
         return TensorBoardLogger(
             TB_LOG_PATH,
-            name="{}_{}".format(self.model_name(), self.uuid),
+            name="yeast_{}_{}".format(self.model_name(), self.uuid),
             default_hp_metric=False,
         )
 
@@ -55,6 +57,8 @@ def main():
     print("UUID:", uuid)
 
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--yeast_path')
     parser.add_argument('--model', choices=['walk_gnn', 'walk_gnn_no_attr', 'walk_gnn_no_node_attr', 'walk_gnn_no_edge_attr',
                                             'gine', 'gine_ohe', 'gin_ohe', 'gin_constant', 'rgine', 'gine_id_ohe',
                                             'ppgn', 'ppgn_no_attr', 'walk_gnn_2b', 'walk_gnn_4b', 'walk_gnn_8b'])
@@ -64,19 +68,25 @@ def main():
 
     args = parser.parse_args()
 
-    model = get_model(args, 8, 4)
+    model = get_model(args, 74, 3)
 
     lit_model = LightningModel(model=model,
                                loss_obj=PWLoss(),
                                uuid=uuid)
 
-    ego_net_path = DATA_PREFIX + 'ego_net_tr.csv'
-    label_path = DATA_PREFIX + 'label.csv'
-    train_dataset = InMemoryEgoLabelDataset(ego_net_path, label_path, LIMIT)
+    train_dataset = YeastDataset(args.yeast_path, True)
+    val_dataset = YeastDataset(args.yeast_path, False)
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
-    trainer = pl.Trainer(max_epochs=100, devices=[int(args.device.split(":")[-1])], accelerator='gpu', accumulate_grad_batches=10, logger=[lit_model.get_logger()])
-    trainer.fit(model=lit_model, train_dataloaders=train_loader)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=1)
+
+    trainer = pl.Trainer(max_epochs=100,
+                         devices=[int(args.device.split(":")[-1])],
+                         gradient_clip_val=1,
+                         accelerator='gpu',
+                         accumulate_grad_batches=10,
+                         logger=[lit_model.get_logger()])
+    trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
 
 if __name__ == '__main__':

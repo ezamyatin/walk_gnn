@@ -93,7 +93,7 @@ class GINEModel(BasicGNN):
         self.in_edge_mlp.reset_parameters()
 
     def forward(self, x, edge_index, *args, **kwargs):
-        if self.use_degree_ohe is not None:
+        if self.use_degree_ohe:
             d = degree(edge_index[0], self.max_nodes, dtype=torch.int32)
             one_hot = torch.zeros((x.shape[0], self.max_nodes), device=x.device)
             one_hot[torch.arange(x.shape[0]), d[:x.shape[0]]] = 1
