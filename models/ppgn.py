@@ -116,7 +116,7 @@ class PPGN(nn.Module):
         if ignore_attr:
             last_layer_features = 1
         else:
-            last_layer_features = edge_dim + node_dim
+            last_layer_features = edge_dim + 2 * node_dim + node_dim
 
         self.reg_blocks = nn.ModuleList()
         for _ in range(num_blocks):
@@ -139,8 +139,8 @@ class PPGN(nn.Module):
             x[edge_index[0], edge_index[1]] = 1
             x = x.permute((2, 0, 1)).unsqueeze(0)
         else:
-            fmtr = torch.zeros((n, n, self.edge_dim), device=feat.device, dtype=torch.float32)
-            fmtr[edge_index[0], edge_index[1]] = edge_attr
+            fmtr = torch.zeros((n, n, self.edge_dim + 2 * self.node_dim), device=feat.device, dtype=torch.float32)
+            fmtr[edge_index[0], edge_index[1]] = torch.cat((edge_attr, feat[edge_index[0]], feat[edge_index[1]]), dim=-1)
 
             nmtr = torch.zeros((n, n, self.node_dim), device=feat.device, dtype=torch.float32)
             nmtr[torch.arange(n), torch.arange(n)] = feat
