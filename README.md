@@ -6,7 +6,7 @@ This is the official codebase of the paper
 Evgeny Zamyatin
 
 ## Dataset ##
-The **EgoAnon** dataset is avalilable here.
+The **EgoVK** dataset is avalilable [here](https://cloud.mail.ru/public/XkJG/e7JnntX7H).
 
 The **Yeast** dataset is avalilable [here](https://www.chrsmrrs.com/graphkerneldatasets/YEAST.zip).
 
