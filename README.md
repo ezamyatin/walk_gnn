@@ -3,7 +3,7 @@ This is the official codebase of the paper
 
 **GNN Applied to Ego-nets for Friend Suggestions**
 
-Anonymous Author(s)
+Evgeny Zamyatin
 
 ## Dataset ##
 The **EgoAnon** dataset is avalilable here.
