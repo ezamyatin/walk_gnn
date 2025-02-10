@@ -1,7 +1,7 @@
 # WalkGNN #
 This is the official codebase of the paper
 
-**GNN Applied to Ego-nets for Friend Suggestions**
+**Ego-net Link Prediction with WalkGNN: A Scalable Approach for Large-Scale Social Graphs**
 
 Evgeny Zamyatin
 
